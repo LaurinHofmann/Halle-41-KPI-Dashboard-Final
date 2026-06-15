@@ -1,0 +1,23 @@
+/* Halle41 Dashboard - additional styles
+   This file is for custom, extendable styles to complement the inline styles
+   present in `index.html`. Use this to centralize and override rules. */
+
+:root{
+  --bg:#f0f2f5;
+  --panel:#ffffff;
+  --muted:#6b7280;
+  --brand:#3b82f6;
+}
+
+html,body{height:100%}
+body{background:var(--bg);font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111827}
+
+/* Responsive grid tweaks */
+.kpis{grid-template-columns:repeat(2,1fr)}
+@media(min-width:900px){.kpis{grid-template-columns:repeat(4,1fr)}}
+
+.main{padding-bottom:56px}
+
+/* Utility helpers */
+.hidden{display:none!important}
+.muted{color:var(--muted)}
