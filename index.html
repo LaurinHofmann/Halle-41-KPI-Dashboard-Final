@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="20260623095053">
+<meta name="app-build" content="20260623101847">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -1303,6 +1303,7 @@ td{padding:8px 12px;vertical-align:middle}
       <button id="stab-at-btn" onclick="setSettingsTab('at')" style="padding:8px 18px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid #111827;margin-bottom:-2px;color:#111827">Arbeitstage</button>
       <button id="stab-mm-btn" onclick="setSettingsTab('mm')" style="padding:8px 18px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:#6b7280">Massenabrechnung</button>
       <button id="stab-users-btn" onclick="setSettingsTab('users')" style="padding:8px 18px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:#6b7280">👥 Benutzer</button>
+      <button id="stab-data-btn" onclick="setSettingsTab('data')" style="padding:8px 18px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:#6b7280">💾 Daten</button>
     </div>
     <!-- Arbeitstage tab -->
     <div id="stab-at" style="flex:1;overflow-y:auto;display:flex;flex-direction:column">
@@ -1337,6 +1338,19 @@ td{padding:8px 12px;vertical-align:middle}
       </div>
     </div>
     <div id="stab-users" style="flex:1;overflow-y:auto;display:none;flex-direction:column;padding:4px 0"></div>
+    <!-- Daten Export/Import tab -->
+    <div id="stab-data" style="flex:1;overflow-y:auto;display:none;flex-direction:column;gap:18px">
+      <div>
+        <p style="font-size:13px;font-weight:700;margin:0 0 4px">Daten exportieren</p>
+        <p style="font-size:12.5px;color:#6b7280;margin:0 0 10px">Lädt alle erfassten Dashboard-Daten dieses Browsers als JSON-Datei herunter (Passwörter sind nicht enthalten).</p>
+        <button onclick="h41ExportData()" style="padding:7px 18px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">📤 Daten exportieren</button>
+      </div>
+      <div style="border-top:1px solid #e5e7eb;padding-top:18px">
+        <p style="font-size:13px;font-weight:700;margin:0 0 4px">Daten importieren</p>
+        <p style="font-size:12.5px;color:#6b7280;margin:0 0 10px">Importiert eine zuvor exportierte JSON-Datei in diesen Browser und überschreibt vorhandene Werte.</p>
+        <input type="file" accept="application/json" id="data-import-input" onchange="h41ImportDataFile(this)" style="font-size:13px">
+      </div>
+    </div>
   </div>
 </div>
 
@@ -4631,12 +4645,53 @@ function closeSettings() {
 }
 
 function setSettingsTab(tab) {
-  ['at','mm','users'].forEach(function(t){
+  ['at','mm','users','data'].forEach(function(t){
     document.getElementById('stab-'+t).style.display = tab===t?'flex':'none';
     document.getElementById('stab-'+t+'-btn').style.borderBottomColor = tab===t?'#111827':'transparent';
     document.getElementById('stab-'+t+'-btn').style.color = tab===t?'#111827':'#6b7280';
   });
   if(tab==='users') renderSettingsUsers();
+}
+
+function h41ExportData() {
+  var data = {};
+  for (var i=0; i<localStorage.length; i++) {
+    var k = localStorage.key(i);
+    if (k && k.indexOf('h41_')===0 && k.toLowerCase().indexOf('pw')===-1) {
+      data[k] = localStorage.getItem(k);
+    }
+  }
+  var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'halle41-dashboard-daten-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function h41ImportDataFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var data;
+    try {
+      data = JSON.parse(e.target.result);
+    } catch (err) {
+      alert('Fehler: Datei ist kein gültiges JSON.');
+      return;
+    }
+    var keys = Object.keys(data).filter(function(k){ return k.indexOf('h41_')===0 && k.toLowerCase().indexOf('pw')===-1; });
+    if (!keys.length) { alert('Keine importierbaren Daten gefunden.'); return; }
+    if (!confirm(keys.length + ' Datensätze werden importiert und vorhandene Werte überschrieben. Fortfahren?')) return;
+    keys.forEach(function(k){ localStorage.setItem(k, data[k]); });
+    alert('Import erfolgreich. Die Seite wird neu geladen.');
+    location.reload();
+  };
+  reader.readAsText(file);
+  input.value = '';
 }
 
 function renderSettingsUsers() {
