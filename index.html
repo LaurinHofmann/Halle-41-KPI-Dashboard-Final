@@ -48,6 +48,7 @@ body:not(.role-admin) #m6-btn-manual,
 body:not(.role-admin) .admin-only{display:none!important}
 body.role-fachlicher-leiter .ht-bl{display:none!important}
 body:not(.role-admin) .ht-admin{display:none!important}
+body:not(.role-admin):not(.role-bereichsleiter) .weiss-entry{display:none!important}
 </style>
 <!-- FORCE PASSWORD CHANGE OVERLAY -->
 <div id="pw-change-overlay" style="position:fixed;inset:0;background:#111827;display:none;align-items:center;justify-content:center;z-index:10000;flex-direction:column">
@@ -94,8 +95,8 @@ body:not(.role-admin) .ht-admin{display:none!important}
 var H41_USERS = [
   {email:'laurinhofmann@halle41.ch', name:'Laurin Hofmann', role:'admin',             hash:'23d9d5fb3a10ac3a9c85552090998468a3bf928a94b379884bfe1b9200bc301e'},
   {email:'romanbader@halle41.ch',    name:'Roman Bader',    role:'admin',             hash:'80b5c66322df9f6d492f54d4a4f12d11c9f24dd548a952c7da8e5faf088f56f6'},
-  {email:'damirbakarcic@halle41.ch', name:'Damir Bakarcic', role:'bereichsleiter',    hash:'dc9327349e3e83628571a6a98c23f500a9ab03b1ecbaa13c59920cc4e2e30549'},
-  {email:'mayakeller@halle41.ch',    name:'Maya Keller',    role:'bereichsleiter',    hash:'cc6939db3abc026fa05a135173705c57b25e16106e25f60ff195aca714813b59'},
+  {email:'damirbakarcic@halle41.ch', name:'Damir Bakarcic', role:'bereichsleiter', loc:'Kloten',  hash:'dc9327349e3e83628571a6a98c23f500a9ab03b1ecbaa13c59920cc4e2e30549'},
+  {email:'mayakeller@halle41.ch',    name:'Maya Keller',    role:'bereichsleiter', loc:'Zuerich', hash:'cc6939db3abc026fa05a135173705c57b25e16106e25f60ff195aca714813b59'},
   {email:'andreisokolov@halle41.ch', name:'Andrei Sokolov', role:'fachlicher-leiter', hash:'4ea1b4fcdb8c19c6ae9a0e2c4416f2601cb8b76dd01f892640131b535991e8f2'},
 ];
 var H41_ROLE_LABELS = {admin:'Admin', bereichsleiter:'Bereichsleiter:in', 'fachlicher-leiter':'Fachlicher Leiter'};
@@ -111,6 +112,7 @@ async function h41Sha256(str){
   function completeLogin(user){
     sessionStorage.setItem('h41_role',user.role);
     sessionStorage.setItem('h41_name',user.name);
+    sessionStorage.setItem('h41_loc',user.loc||'');
     document.getElementById('login-overlay').style.display='none';
     document.body.classList.remove('locked');
     applyRoleClass(user.role);
