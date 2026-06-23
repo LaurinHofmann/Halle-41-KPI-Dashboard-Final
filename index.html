@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="20260623105208">
+<meta name="app-build" content="20260623115259">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -3442,7 +3442,27 @@ function setM10Month(m, btn) {
 }
 
 /* ===================== MODULE 10 – THERAPEUTEN-SCORECARD ===================== */
+// Auslastung aus der Auslastungsanalyse (m13) ableiten – gleiche Quelle, die Bereichsleiter selbst pflegen.
+function getM13UtilForName(m10Name, loc, month) {
+  var parts=m10Name.trim().split(/\s+/);
+  var vorname=parts[0], nachname=parts.slice(1).join(' ');
+  if(!nachname) return null;
+  var allData=getAuslastungAllData();
+  var d=allData.find(function(r){
+    return r.month===month&&r.loc===loc&&
+      r.vorname.toLowerCase()===vorname.toLowerCase()&&
+      r.nachname.toLowerCase()===nachname.toLowerCase();
+  });
+  if(!d) return null;
+  var eff=Math.max(0,d.geplant-d.admin-d.allgemein);
+  var weiss=getWeissForPerson(d.vorname,d.nachname,month,d.loc);
+  return (eff>0&&weiss!=null)?Math.round(eff/(eff+weiss)*1000)/10:null;
+}
 function getUtilForMonth(m10Name, loc, month) {
+  if(month!=='all'){
+    var m13Val=getM13UtilForName(m10Name,loc,month);
+    if(m13Val!=null) return m13Val;
+  }
   var parts=m10Name.trim().split(/\s+/);
   var surname=parts[parts.length-1].toLowerCase();
   if(loc==='Kloten'){
@@ -3468,6 +3488,9 @@ function getAbsRate(m10Name, m10Loc, month) {
   return tot>=10?Math.round(abs/tot*1000)/10:null;
 }
 function getUtilPct(m10Name, loc) {
+  var m13Months=['2026-01','2026-02','2026-03','2026-04','2026-05'];
+  var m13Vals=m13Months.map(function(m){return getM13UtilForName(m10Name,loc,m);}).filter(function(v){return v!=null;});
+  if(m13Vals.length) return Math.round(m13Vals.reduce(function(a,b){return a+b;},0)/m13Vals.length*10)/10;
   // M10 names: "Vorname Nachname" → surname = last word
   // UTIL names: "Nachname Vorname" → first word = surname
   var parts = m10Name.trim().split(/\s+/);
