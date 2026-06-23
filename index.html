@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="20260623101847">
+<meta name="app-build" content="20260623105208">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -1090,9 +1090,9 @@ td{padding:8px 12px;vertical-align:middle}
   <div class="mod-toolbar" style="gap:8px;flex-wrap:wrap;align-items:center">
     <label style="font-size:12px;font-weight:600;color:#374151">Monat:</label>
     <select id="m13-month-sel" onchange="renderM13()" style="border:1.5px solid #d1d5db;border-radius:6px;padding:5px 10px;font-size:13px;font-family:inherit;outline:none;background:#fff"></select>
-    <div style="margin-left:auto;display:flex;gap:8px" class="admin-only">
-      <button onclick="var w=document.getElementById('m13-upload-wrap');var isOpen=w.style.display!=='none';w.style.display=isOpen?'none':'block';if(!isOpen)document.getElementById('m13-weiss-wrap').style.display='none';" style="padding:5px 14px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📤 Cenplex hochladen</button>
-      <button onclick="toggleM13WeissForm()" style="padding:5px 14px;border-radius:6px;border:1.5px solid #374151;background:#fff;color:#374151;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Weisse Fläche</button>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="admin-only" onclick="var w=document.getElementById('m13-upload-wrap');var isOpen=w.style.display!=='none';w.style.display=isOpen?'none':'block';if(!isOpen)document.getElementById('m13-weiss-wrap').style.display='none';" style="padding:5px 14px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📤 Cenplex hochladen</button>
+      <button class="weiss-entry" onclick="toggleM13WeissForm()" style="padding:5px 14px;border-radius:6px;border:1.5px solid #374151;background:#fff;color:#374151;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Weisse Fläche</button>
     </div>
   </div>
   <div id="m13-upload-wrap" class="entry-form admin-only" style="margin:0 28px;display:none">
@@ -1109,7 +1109,7 @@ td{padding:8px 12px;vertical-align:middle}
       <button onclick="if(confirm('Alle hochgeladenen Daten löschen?')){localStorage.removeItem('h41_auslastung_uploaded');renderM13();}" style="padding:3px 10px;border-radius:5px;border:1px solid #fca5a5;background:#fee2e2;color:#b91c1c;font-size:11.5px;cursor:pointer">Alle löschen</button>
     </div>
   </div>
-  <div id="m13-weiss-wrap" class="entry-form admin-only" style="margin:0 28px;display:none">
+  <div id="m13-weiss-wrap" class="weiss-entry" style="margin:0 28px;display:none">
     <div style="font-weight:700;font-size:14px;margin-bottom:4px">Weisse Fläche erfassen</div>
     <div style="font-size:12px;color:#6b7280;margin-bottom:12px">Vom Betriebsleiter direkt erfasst – nicht aus Cenplex. Werte pro Therapeut und Monat eingeben und speichern.</div>
     <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:14px">
@@ -1119,7 +1119,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <button onclick="saveM13Weiss()" style="padding:8px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>
       <div id="m13-weiss-msg" style="font-size:12px;min-height:18px"></div>
-      <button onclick="if(confirm('Alle manuell erfassten Weisse-Fläche-Daten löschen?')){localStorage.removeItem('h41_weiss_manual');renderM13WeissForm();renderM13();}" style="padding:3px 10px;border-radius:5px;border:1px solid #fca5a5;background:#fee2e2;color:#b91c1c;font-size:11.5px;cursor:pointer;margin-left:auto">Alle Weiss-Daten löschen</button>
+      <button class="admin-only" onclick="if(confirm('Alle manuell erfassten Weisse-Fläche-Daten löschen?')){localStorage.removeItem('h41_weiss_manual');renderM13WeissForm();renderM13();}" style="padding:3px 10px;border-radius:5px;border:1px solid #fca5a5;background:#fee2e2;color:#b91c1c;font-size:11.5px;cursor:pointer;margin-left:auto">Alle Weiss-Daten löschen</button>
     </div>
   </div>
   <div class="mod-kpis" id="m13-kpis"></div>
@@ -5470,6 +5470,11 @@ function renderM13WeissForm() {
   }
   var klP=persons.filter(function(p){return p.loc==='Kloten';});
   var zhP=persons.filter(function(p){return p.loc==='Zuerich'||p.loc==='Zürich';});
+  var role=sessionStorage.getItem('h41_role');
+  var ownLoc=sessionStorage.getItem('h41_loc');
+  if(role==='bereichsleiter'&&ownLoc){
+    if(ownLoc==='Kloten') zhP.length=0; else klP.length=0;
+  }
   container.innerHTML=buildWeissLocTable(klP,'Kloten','#6366f1')+buildWeissLocTable(zhP,'Zürich','#3b82f6');
 }
 
@@ -5483,8 +5488,10 @@ function saveM13Weiss() {
     var val=inp.value.trim()!==''?parseFloat(inp.value):null;
     entries.push({vorname:inp.getAttribute('data-vn'),nachname:inp.getAttribute('data-nn'),loc:inp.getAttribute('data-loc'),month:month,weiss:val});
   });
+  var savedLocs={};
+  entries.forEach(function(e){savedLocs[e.loc]=true;});
   var existing=JSON.parse(localStorage.getItem('h41_weiss_manual')||'[]');
-  var merged=existing.filter(function(r){return r.month!==month;}).concat(entries);
+  var merged=existing.filter(function(r){return !(r.month===month&&savedLocs[r.loc]);}).concat(entries);
   localStorage.setItem('h41_weiss_manual',JSON.stringify(merged));
   msgEl.style.color='#16a34a';msgEl.textContent='✓ '+entries.length+' Einträge für '+month+' gespeichert.';
   setTimeout(function(){msgEl.textContent='';},3000);
