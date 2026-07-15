@@ -868,7 +868,7 @@ td{padding:8px 12px;vertical-align:middle}
 <div id="view-m3" style="display:none">
   <div style="margin:12px 28px 4px;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:12px">
     <div onclick="const d=this.nextElementSibling;const a=this.querySelector('span');d.style.display=d.style.display==='none'?'block':'none';a.textContent=d.style.display==='none'?'▼ anzeigen':'▲ ausblenden'" style="cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:700;color:#0369a1">ℹ️ Was zeigt dieses Dashboard? <span style="margin-left:auto;font-size:10px;color:#0369a1">▲ ausblenden</span></div>
-    <div style="display:block;margin-top:8px;color:#0c4a6e;line-height:1.8"><strong>Was du siehst:</strong> Anzahl Ersttermine (neue Patienten) pro Monat und Standort (ab Aug 2024) — aufgeteilt in KVG und UVG. Dazu Arbeitstag-bereinigte Werte, Jahresvergleich und KVG/UVG-Trend.<br><strong>Warum wichtig:</strong> Ersttermine sind das Wachstumsbarometer der Praxis. Sinkende Zahlen deuten auf weniger Neuzuweisungen hin.<br><strong>So wurden die Zahlen gezogen:</strong> Cenplex-Auswertung «Ersttermine KVG & UVG». Alle Serien, die nicht «1. Termin-Serien» sind (abhängig vom Titel der Serie), sowie alle MTT-Serien wurden herausgefiltert. Datenzeitraum: Aug 2024 – Mai 2026.</div>
+    <div style="display:block;margin-top:8px;color:#0c4a6e;line-height:1.8"><strong>Was du siehst:</strong> Anzahl Ersttermine (neue Patienten) pro Monat und Standort (ab Sep 2024). MTT-Termine werden nur gezählt, wenn sie als Ersttermine (z.B. vor Physiotherapie) stattgefunden haben. Dazu arbeitstag-bereinigte Werte und Jahresvergleich.<br><strong>Warum wichtig:</strong> Ersttermine sind das Wachstumsbarometer der Praxis. Sinkende Zahlen deuten auf weniger Neuzuweisungen hin.<br><strong>So wurden die Zahlen gezogen:</strong> Cenplex-Auswertung «Ersttermine». Alle Serien, die nicht «1. Termin-Serien» sind, werden herausgefiltert. MTT-Termine zählen nur, wenn der Termin als Ersttermin (vor Physiotherapie) erfasst wurde. Datenzeitraum: Sep 2024 – Jun 2026.</div>
   </div>
   <div class="mod-kpis" id="m3-kpis"></div>
   <div class="mod-toolbar">
@@ -889,10 +889,6 @@ td{padding:8px 12px;vertical-align:middle}
     </div>
     <div class="entry-grid">
       <div class="entry-field"><label>Ersttermine</label><input type="number" id="m3-erst" placeholder="0" min="0"></div>
-      <div class="entry-field"><label>Folgetermine</label><input type="number" id="m3-folge" placeholder="0" min="0"></div>
-      <div class="entry-field"><label>davon Zuweiser</label><input type="number" id="m3-zuweiser" placeholder="0" min="0"></div>
-      <div class="entry-field"><label>Selbstzahler</label><input type="number" id="m3-selbst" placeholder="0" min="0"></div>
-      <div class="entry-field"><label>Online</label><input type="number" id="m3-online" placeholder="0" min="0"></div>
     </div>
     <div style="display:flex;gap:8px">
       <button onclick="saveM3Entry()" style="padding:7px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>
@@ -1776,8 +1772,8 @@ function renderMonthlySnapshot() {
 const MOD_SCHEMAS = {
   m2: { title:'Gesamtumsatz', cols:['month','location','therapie','mtt','total'],
         desc:'Spalten: Monat (YYYY-MM), Standort (Zuerich/Kloten), Therapie (CHF), MTT (CHF), Total (CHF). Eine Zeile pro Monat und Standort.' },
-  m3: { title:'Ersttermine', cols:['month','location','ersttermine','folgetermine','zuweiser','selbst','online'],
-        desc:'Spalten: Monat (YYYY-MM), Standort, Ersttermine, Folgetermine, davon Zuweiser, Selbstzahler, Online.' },
+  m3: { title:'Ersttermine', cols:['month','location','ersttermine'],
+        desc:'Spalten: Monat (YYYY-MM), Standort (Zuerich/Kloten), Ersttermine (Anzahl). Eine Zeile pro Monat und Standort.' },
   m4: { title:'MTT', cols:['month','location','revenue','active_abos','new_abos','cancelled_abos','checkins'],
         desc:'Spalten: Monat (YYYY-MM), Standort, Umsatz (CHF), Aktive Abos, Neue Abos, Gekündigte Abos, Check-ins.' },
   m5: { title:'UVG-Termine', cols:['month','location','termine','umsatz','ftes'],
@@ -1840,50 +1836,50 @@ const M2_INIT=[
 ];
 
 const M3_INIT=[
-  {month:'2024-08',location:'Kloten',ersttermine:128,kvg:100,uvg:28},
-  {month:'2024-08',location:'Zuerich',ersttermine:70,kvg:46,uvg:24},
-  {month:'2024-09',location:'Kloten',ersttermine:124,kvg:103,uvg:21},
-  {month:'2024-09',location:'Zuerich',ersttermine:93,kvg:63,uvg:30},
-  {month:'2024-10',location:'Kloten',ersttermine:119,kvg:101,uvg:18},
-  {month:'2024-10',location:'Zuerich',ersttermine:109,kvg:77,uvg:32},
-  {month:'2024-11',location:'Kloten',ersttermine:124,kvg:105,uvg:19},
-  {month:'2024-11',location:'Zuerich',ersttermine:105,kvg:80,uvg:25},
-  {month:'2024-12',location:'Kloten',ersttermine:70,kvg:56,uvg:14},
-  {month:'2024-12',location:'Zuerich',ersttermine:78,kvg:60,uvg:18},
-  {month:'2025-01',location:'Kloten',ersttermine:134,kvg:105,uvg:29},
-  {month:'2025-01',location:'Zuerich',ersttermine:92,kvg:57,uvg:35},
-  {month:'2025-02',location:'Kloten',ersttermine:117,kvg:100,uvg:17},
-  {month:'2025-02',location:'Zuerich',ersttermine:101,kvg:75,uvg:26},
-  {month:'2025-03',location:'Kloten',ersttermine:134,kvg:98,uvg:36},
-  {month:'2025-03',location:'Zuerich',ersttermine:95,kvg:70,uvg:25},
-  {month:'2025-04',location:'Kloten',ersttermine:122,kvg:93,uvg:29},
-  {month:'2025-04',location:'Zuerich',ersttermine:125,kvg:80,uvg:45},
-  {month:'2025-05',location:'Kloten',ersttermine:106,kvg:91,uvg:15},
-  {month:'2025-05',location:'Zuerich',ersttermine:93,kvg:67,uvg:26},
-  {month:'2025-06',location:'Kloten',ersttermine:107,kvg:81,uvg:26},
-  {month:'2025-06',location:'Zuerich',ersttermine:89,kvg:69,uvg:20},
-  {month:'2025-07',location:'Kloten',ersttermine:128,kvg:106,uvg:22},
-  {month:'2025-07',location:'Zuerich',ersttermine:102,kvg:72,uvg:30},
-  {month:'2025-08',location:'Kloten',ersttermine:104,kvg:78,uvg:26},
-  {month:'2025-08',location:'Zuerich',ersttermine:105,kvg:78,uvg:27},
-  {month:'2025-09',location:'Kloten',ersttermine:124,kvg:91,uvg:33},
-  {month:'2025-09',location:'Zuerich',ersttermine:108,kvg:79,uvg:29},
-  {month:'2025-10',location:'Kloten',ersttermine:110,kvg:84,uvg:26},
-  {month:'2025-10',location:'Zuerich',ersttermine:113,kvg:84,uvg:29},
-  {month:'2025-11',location:'Kloten',ersttermine:126,kvg:102,uvg:24},
-  {month:'2025-11',location:'Zuerich',ersttermine:95,kvg:80,uvg:15},
-  {month:'2025-12',location:'Kloten',ersttermine:109,kvg:86,uvg:23},
-  {month:'2025-12',location:'Zuerich',ersttermine:92,kvg:71,uvg:21},
-  {month:'2026-01',location:'Kloten',ersttermine:126,kvg:89,uvg:37},
-  {month:'2026-01',location:'Zuerich',ersttermine:95,kvg:70,uvg:25},
-  {month:'2026-02',location:'Kloten',ersttermine:107,kvg:78,uvg:29},
-  {month:'2026-02',location:'Zuerich',ersttermine:92,kvg:57,uvg:35},
-  {month:'2026-03',location:'Kloten',ersttermine:161,kvg:128,uvg:33},
-  {month:'2026-03',location:'Zuerich',ersttermine:108,kvg:70,uvg:38},
-  {month:'2026-04',location:'Kloten',ersttermine:128,kvg:89,uvg:39},
-  {month:'2026-04',location:'Zuerich',ersttermine:103,kvg:71,uvg:32},
-  {month:'2026-05',location:'Kloten',ersttermine:114,kvg:88,uvg:26},
-  {month:'2026-05',location:'Zuerich',ersttermine:94,kvg:67,uvg:27},
+  {month:'2024-09',location:'Kloten',ersttermine:174},
+  {month:'2024-09',location:'Zuerich',ersttermine:97},
+  {month:'2024-10',location:'Kloten',ersttermine:141},
+  {month:'2024-10',location:'Zuerich',ersttermine:110},
+  {month:'2024-11',location:'Kloten',ersttermine:141},
+  {month:'2024-11',location:'Zuerich',ersttermine:112},
+  {month:'2024-12',location:'Kloten',ersttermine:98},
+  {month:'2024-12',location:'Zuerich',ersttermine:67},
+  {month:'2025-01',location:'Kloten',ersttermine:135},
+  {month:'2025-01',location:'Zuerich',ersttermine:80},
+  {month:'2025-02',location:'Kloten',ersttermine:135},
+  {month:'2025-02',location:'Zuerich',ersttermine:78},
+  {month:'2025-03',location:'Kloten',ersttermine:132},
+  {month:'2025-03',location:'Zuerich',ersttermine:89},
+  {month:'2025-04',location:'Kloten',ersttermine:126},
+  {month:'2025-04',location:'Zuerich',ersttermine:98},
+  {month:'2025-05',location:'Kloten',ersttermine:110},
+  {month:'2025-05',location:'Zuerich',ersttermine:79},
+  {month:'2025-06',location:'Kloten',ersttermine:100},
+  {month:'2025-06',location:'Zuerich',ersttermine:73},
+  {month:'2025-07',location:'Kloten',ersttermine:126},
+  {month:'2025-07',location:'Zuerich',ersttermine:91},
+  {month:'2025-08',location:'Kloten',ersttermine:99},
+  {month:'2025-08',location:'Zuerich',ersttermine:85},
+  {month:'2025-09',location:'Kloten',ersttermine:109},
+  {month:'2025-09',location:'Zuerich',ersttermine:94},
+  {month:'2025-10',location:'Kloten',ersttermine:101},
+  {month:'2025-10',location:'Zuerich',ersttermine:98},
+  {month:'2025-11',location:'Kloten',ersttermine:105},
+  {month:'2025-11',location:'Zuerich',ersttermine:113},
+  {month:'2025-12',location:'Kloten',ersttermine:104},
+  {month:'2025-12',location:'Zuerich',ersttermine:80},
+  {month:'2026-01',location:'Kloten',ersttermine:117},
+  {month:'2026-01',location:'Zuerich',ersttermine:101},
+  {month:'2026-02',location:'Kloten',ersttermine:102},
+  {month:'2026-02',location:'Zuerich',ersttermine:72},
+  {month:'2026-03',location:'Kloten',ersttermine:168},
+  {month:'2026-03',location:'Zuerich',ersttermine:114},
+  {month:'2026-04',location:'Kloten',ersttermine:114},
+  {month:'2026-04',location:'Zuerich',ersttermine:92},
+  {month:'2026-05',location:'Kloten',ersttermine:106},
+  {month:'2026-05',location:'Zuerich',ersttermine:99},
+  {month:'2026-06',location:'Kloten',ersttermine:128},
+  {month:'2026-06',location:'Zuerich',ersttermine:114},
 ];
 
 const M4_INIT=[
@@ -2102,7 +2098,12 @@ function loadModData(key) {
     }
     return data;
   }
-  if (key === 'm3') return JSON.parse(JSON.stringify(M3_INIT));
+  if (key === 'm3') {
+    if (!stored) return JSON.parse(JSON.stringify(M3_INIT));
+    const d3 = JSON.parse(stored);
+    if (!d3.length || d3[0].kvg !== undefined) { localStorage.removeItem('h41_m3_data'); return JSON.parse(JSON.stringify(M3_INIT)); }
+    return d3;
+  }
   if (key === 'm4') {
     if (!stored) return JSON.parse(JSON.stringify(M4_INIT));
     const data = JSON.parse(stored);
@@ -2491,13 +2492,11 @@ function renderM3() {
     mkpiHtml('','Ersttermine / Arbeitstag',+(lastEt/lastAt).toFixed(1),lastAt+' AT · '+moLbl(lastM));
 
   // monthly aggregates
-  const byZH={},byKL={},byTotal={},byKVG={},byUVG={};
+  const byZH={},byKL={},byTotal={};
   months.forEach(m=>{
     byZH[m]=sumLoc(m,'Zuerich','ersttermine');
     byKL[m]=sumLoc(m,'Kloten','ersttermine');
     byTotal[m]=sumFilt(m,'ersttermine');
-    byKVG[m]=raw.filter(r=>r.month===m).reduce((s,r)=>s+(r.kvg||0),0);
-    byUVG[m]=raw.filter(r=>r.month===m).reduce((s,r)=>s+(r.uvg||0),0);
   });
 
   // rolling 12-month average
@@ -2579,9 +2578,6 @@ function renderM3() {
       <td style="padding:5px 10px;text-align:center;color:#6b7280">${at}</td>
       ${gLoc==='all'?`<td style="padding:5px 10px;text-align:right">${byKL[m]}</td><td style="padding:5px 10px;text-align:right">${byZH[m]}</td>`:''}
       <td style="padding:5px 10px;text-align:right;font-weight:700">${et}</td>
-      <td style="padding:5px 10px;text-align:right;color:#3b82f6">${byKVG[m]||'–'}</td>
-      <td style="padding:5px 10px;text-align:right;color:#16a34a">${byUVG[m]||'–'}</td>
-      <td style="padding:5px 10px;text-align:right;color:#6b7280">${et>0?((byUVG[m]||0)/et*100).toFixed(1)+'%':'–'}</td>
       <td style="padding:5px 10px;text-align:right;color:#6b7280">${(et/at).toFixed(2)}</td>
       <td style="padding:5px 10px;text-align:right;${dc(mP)}">${mP!==null?(mP>=0?'▲ ':'▼ ')+Math.abs(mP).toFixed(1)+'%':'–'}</td>
       <td style="padding:5px 10px;text-align:right;${dc(vP)}">${vP!==null?(vP>=0?'▲ ':'▼ ')+Math.abs(vP).toFixed(1)+'%':'–'}</td>
@@ -2615,9 +2611,6 @@ function renderM3() {
             <th style="padding:6px 10px;text-align:center;font-weight:600">AT</th>
             ${gLoc==='all'?'<th style="padding:6px 10px;text-align:right;font-weight:600">Kloten</th><th style="padding:6px 10px;text-align:right;font-weight:600">Zürich</th>':''}
             <th style="padding:6px 10px;text-align:right;font-weight:600">Total</th>
-            <th style="padding:6px 10px;text-align:right;font-weight:600;color:#3b82f6">KVG</th>
-            <th style="padding:6px 10px;text-align:right;font-weight:600;color:#16a34a">UVG</th>
-            <th style="padding:6px 10px;text-align:right;font-weight:600">UVG %</th>
             <th style="padding:6px 10px;text-align:right;font-weight:600">/AT</th>
             <th style="padding:6px 10px;text-align:right;font-weight:600">vs VM</th>
             <th style="padding:6px 10px;text-align:right;font-weight:600">vs VJ</th>
@@ -2626,10 +2619,7 @@ function renderM3() {
         </table>
       </div>
     </div>
-    <div class="chart-card">
-      <div class="chart-card-hdr">KVG / UVG Aufteilung <span class="cc-sub">Ersttermine nach Tariftyp · blau = KVG · grün = UVG</span></div>
-      <div style="height:260px;position:relative"><canvas id="m3-c4"></canvas></div>
-    </div>`;
+`;
 
   mkChart('m3-c1',{type:'bar',data:{labels,datasets:mainDS},
     options:{responsive:true,maintainAspectRatio:false,
@@ -2660,22 +2650,6 @@ function renderM3() {
     scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'}},
       x:{grid:{display:false},ticks:{font:{size:10}}}}}});
 
-  mkChart('m3-c4',{type:'bar',data:{labels,datasets:[
-    {label:'KVG',data:months.map(m=>byKVG[m]),backgroundColor:'rgba(59,130,246,.75)',stack:'s'},
-    {label:'UVG',data:months.map(m=>byUVG[m]),backgroundColor:'rgba(22,163,74,.75)',stack:'s'},
-  ]},options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}},
-      tooltip:{callbacks:{label:i=>i.dataset.label+': '+i.raw+' ('+((i.raw/(byKVG[months[i.dataIndex]]+(byUVG[months[i.dataIndex]]||0))||0)*100).toFixed(1)+'%)'}}},
-    scales:{y:{stacked:true,beginAtZero:true,grid:{color:'#f3f4f6'}},
-      x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}}}},
-  plugins:[{id:'kvgTotals',afterDatasetsDraw(chart){
-    const ctx=chart.ctx;const metas=[];
-    chart.data.datasets.forEach((_,i)=>metas.push(chart.getDatasetMeta(i)));
-    const top=metas[metas.length-1];
-    ctx.save();ctx.font='600 10px system-ui';ctx.fillStyle='#374151';ctx.textAlign='center';ctx.textBaseline='bottom';
-    top.data.forEach((bar,i)=>{if(!bar||bar.hidden)return;const tot=(byKVG[months[i]]||0)+(byUVG[months[i]]||0);ctx.fillText(tot,bar.x,bar.y-3);});
-    ctx.restore();
-  }}]});
 }
 
 /* ===================== MODULE 4 – MTT ===================== */
@@ -4615,11 +4589,7 @@ function saveM3Entry() {
   const loc=document.getElementById('m3-loc').value;
   if (!month) { alert('Bitte Monat wählen.'); return; }
   const entry={month,location:loc,
-    ersttermine:parseFloat(document.getElementById('m3-erst').value)||0,
-    folgetermine:parseFloat(document.getElementById('m3-folge').value)||0,
-    zuweiser:parseFloat(document.getElementById('m3-zuweiser').value)||0,
-    selbstzahler:parseFloat(document.getElementById('m3-selbst').value)||0,
-    online:parseFloat(document.getElementById('m3-online').value)||0
+    ersttermine:parseFloat(document.getElementById('m3-erst').value)||0
   };
   const data=loadModData('m3');
   const idx=data.findIndex(r=>r.month===month&&r.location===loc);
