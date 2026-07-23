@@ -1109,7 +1109,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="font-size:11.5px;color:#6b7280;line-height:1.7;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:7px 12px">
       <span style="font-weight:700;color:#111827">Alle:</span> Physiotherapeuten + Student (Dominic Hirter) + Masseure im Fixlohn (derzeit Fabian Buchschacher) &nbsp;|&nbsp;
       <span style="font-weight:700;color:#111827">Therapeuten (Bonusrelevant):</span> Nur Physiotherapeuten — Student und Masseure im Fixlohn nicht einbezogen, da deren Auslastung nicht an den Bonus geknüpft ist.
-      <span style="color:#9ca3af">&nbsp;·&nbsp; Generell nicht erfasst: Masseure mit Umsatzmodell (G. Crameri, H. März, A. Schälin)</span>
+      <span style="color:#9ca3af">&nbsp;·&nbsp; Ausgeblendet: Personen ohne Kalender-Tracking</span>
     </div>
   </div>
   <div class="mod-toolbar" style="gap:8px;flex-wrap:wrap;align-items:center">
@@ -5365,6 +5365,9 @@ const AUSLASTUNG_LOC_MAP = {
   'müller':'Kloten','muller':'Kloten','hirter':'Kloten','haller':'Kloten',
 };
 
+// Personen komplett ausgeblendet (kein Kalender-Tracking)
+const AUSLASTUNG_EXCLUDE_NN = new Set(['Crameri','März','Schälin']);
+
 // Nachname → Rolle für nicht-bonusrelevante Personen (kein Umsatzmodell)
 const AUSLASTUNG_NON_BONUS = {'Buchschacher':'Masseur','Hirter':'Student','Muncan':'Masseur'};
 
@@ -5386,7 +5389,11 @@ function toggleM13Info() {
 
 function getAuslastungAllData() {
   var uploaded=JSON.parse(localStorage.getItem('h41_auslastung_uploaded')||'[]');
-  return AUSLASTUNG_CENPLEX.concat(uploaded);
+  var all=AUSLASTUNG_CENPLEX.concat(uploaded).filter(function(d){ return !AUSLASTUNG_EXCLUDE_NN.has(d.nachname); });
+  // Dedup by vorname+nachname+month: prefer last entry (uploaded > CENPLEX estimate)
+  var seen={}, deduped=[];
+  all.slice().reverse().forEach(function(d){ var k=d.vorname+'|'+d.nachname+'|'+d.month; if(!seen[k]){seen[k]=true;deduped.push(d);} });
+  return deduped.reverse();
 }
 
 function getWeissForPerson(vorname, nachname, month, loc) {
@@ -5550,7 +5557,6 @@ function saveM13Weiss() {
 
 function renderM13() {
   function pC(v){ return v>=85?'#16a34a':v>=70?'#d97706':'#ef4444'; }
-  function pBg(v){ return v>=85?'rgba(22,163,74,.12)':v>=70?'rgba(217,119,6,.1)':'rgba(239,68,68,.1)'; }
 
   // ---- Month selector ----
   var allData=getAuslastungAllData();
@@ -5571,40 +5577,33 @@ function renderM13() {
   var sc=document.getElementById('m13-saved-count');
   if(sc){sc.textContent=JSON.parse(localStorage.getItem('h41_auslastung_uploaded')||'[]').length+' Eintr.';}
 
-  // ---- Compute per person ----
+  // ---- Compute per person for selected month ----
   var monthData=allData.filter(function(d){return d.month===selMonth&&d.geplant>0;});
   var persons=monthData.map(function(d){
     var eff=Math.max(0,d.geplant-d.admin-d.allgemein);
     var weiss=getWeissForPerson(d.vorname,d.nachname,selMonth,d.loc);
     var aus=(eff>0&&weiss!=null)?eff/(eff+weiss)*100:null;
     var role=AUSLASTUNG_NON_BONUS[d.nachname]||null;
-    return {name:d.vorname+' '+d.nachname,nachname:d.nachname,loc:d.loc,geplant:d.geplant,admin:d.admin,allgemein:d.allgemein,eff:eff,weiss:weiss,aus:aus,role:role};
+    return {name:d.vorname+' '+d.nachname,nachname:d.nachname,vorname:d.vorname,loc:d.loc,geplant:d.geplant,admin:d.admin,allgemein:d.allgemein,eff:eff,weiss:weiss,aus:aus,role:role};
   });
-  var visPersons = m13ViewMode==='therapeuten'
-    ? persons.filter(function(p){return !p.role;})
-    : persons;
-  function locSort(arr){ return arr.slice().sort(function(a,b){return (b.aus||0)-(a.aus||0);}); }
-  var klP=locSort(visPersons.filter(function(p){return p.loc==='Kloten';}));
-  var zhP=locSort(visPersons.filter(function(p){return p.loc==='Zuerich'||p.loc==='Zürich';}));
-  function avgAus(arr){
-    var v=arr.filter(function(p){return p.aus!=null;});
-    return v.length?v.reduce(function(s,p){return s+p.aus;},0)/v.length:null;
-  }
-  var klAvg=avgAus(klP), zhAvg=avgAus(zhP);
+  var visPersons=m13ViewMode==='therapeuten'?persons.filter(function(p){return !p.role;}):persons;
+  function locSort(arr){return arr.slice().sort(function(a,b){if(b.aus==null&&a.aus==null)return 0;if(b.aus==null)return -1;if(a.aus==null)return 1;return b.aus-a.aus;});}
+  var klAll=locSort(visPersons.filter(function(p){return p.loc==='Kloten';}));
+  var zhAll=locSort(visPersons.filter(function(p){return p.loc==='Zuerich'||p.loc==='Zürich';}));
+  function avgAus(arr){var v=arr.filter(function(p){return p.aus!=null;});return v.length?v.reduce(function(s,p){return s+p.aus;},0)/v.length:null;}
 
   // ---- KPIs: always show latest available month ----
-  var latestMonth = months[months.length-1];
-  var latestMo = parseInt(latestMonth.split('-')[1])-1;
-  var latestLbl = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'][latestMo]+' '+latestMonth.split('-')[0];
-  var latestData = allData.filter(function(d){return d.month===latestMonth&&d.geplant>0;});
-  var latestPersons = latestData.map(function(d){
+  var latestMonth=months[months.length-1];
+  var latestMo=parseInt(latestMonth.split('-')[1])-1;
+  var latestLbl=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'][latestMo]+' '+latestMonth.split('-')[0];
+  var latestData=allData.filter(function(d){return d.month===latestMonth&&d.geplant>0;});
+  var latestPersons=latestData.map(function(d){
     var eff=Math.max(0,d.geplant-d.admin-d.allgemein);
     var weiss=getWeissForPerson(d.vorname,d.nachname,latestMonth,d.loc);
     var aus=(eff>0&&weiss!=null)?eff/(eff+weiss)*100:null;
     return {loc:d.loc,aus:aus,role:AUSLASTUNG_NON_BONUS[d.nachname]||null};
   });
-  var latestVis = m13ViewMode==='therapeuten'
-    ? latestPersons.filter(function(p){return !p.role;}) : latestPersons;
+  var latestVis=m13ViewMode==='therapeuten'?latestPersons.filter(function(p){return !p.role;}):latestPersons;
   var klL=latestVis.filter(function(p){return p.loc==='Kloten';});
   var zhL=latestVis.filter(function(p){return p.loc==='Zuerich'||p.loc==='Zürich';});
   var klLatest=avgAus(klL), zhLatest=avgAus(zhL);
@@ -5627,83 +5626,81 @@ function renderM13() {
     mkpiHtml('','Formel','Effektiv ÷ (Effektiv + Weisse Fläche)','Effektiv = Geplant − Admin − Allgemein')+
     mkpiHtml('','Legende','<span style="color:#16a34a">●</span> ≥85%&nbsp;&nbsp;<span style="color:#d97706">●</span> 70–85%&nbsp;&nbsp;<span style="color:#ef4444">●</span> &lt;70%','');
 
-  // ---- Build per-location section ----
-  function buildSection(pArr, locName, locColor) {
-    if(!pArr.length) return '';
-    var avg=avgAus(pArr);
-    var chartId='m13-chart-'+locName.toLowerCase().replace(/ü/g,'u');
-    var trs=pArr.map(function(p){
-      var weissStr=p.weiss!=null?p.weiss.toFixed(1)+' h':'<span style="color:#9ca3af">k.A.</span>';
-      var ausStr=p.aus!=null
-        ?'<span style="font-weight:700;color:'+pC(p.aus)+'">'+p.aus.toFixed(1)+'%</span>'
-         +'<span style="display:inline-block;width:'+Math.min(Math.round(p.aus),100)+'px;height:4px;background:'+pC(p.aus)+';border-radius:2px;vertical-align:middle;margin-left:5px"></span>'
-        :'<span style="color:#9ca3af">k.A.</span>';
-      var badge=p.role?'<span style="font-size:10px;background:#f3f4f6;color:#9ca3af;border-radius:10px;padding:1px 7px;margin-left:5px;font-weight:500">'+p.role+'</span>':'';
-      var ttip = p.aus!=null && p.weiss!=null
-        ? p.geplant.toFixed(1)+'h geplant  −  '+p.admin.toFixed(1)+'h Admin  −  '+p.allgemein.toFixed(1)+'h Allgemein  =  '+p.eff.toFixed(1)+'h effektiv\n'
-          +'Weisse Fläche: '+p.weiss.toFixed(1)+'h\n\n'
-          +p.eff.toFixed(1)+' ÷ ('+p.eff.toFixed(1)+' + '+p.weiss.toFixed(1)+') × 100  =  '+p.aus.toFixed(1)+'%'
-        : p.aus==null && p.weiss==null
-          ? p.geplant.toFixed(1)+'h geplant  −  '+p.admin.toFixed(1)+'h Admin  −  '+p.allgemein.toFixed(1)+'h Allgemein  =  '+p.eff.toFixed(1)+'h effektiv\nWeisse Fläche: k.A. → Auslastung kann nicht berechnet werden'
-          : '';
-      return '<tr style="border-bottom:1px solid #f3f4f6'+(p.role?';opacity:.85':'')+';">'
-        +'<td style="padding:7px 12px;white-space:nowrap;font-weight:500">'+p.name+badge+'</td>'
-        +'<td style="padding:6px 10px;text-align:right;font-size:12px;color:#6b7280">'+p.geplant.toFixed(1)+'</td>'
-        +'<td style="padding:6px 10px;text-align:right;font-size:12px;color:#6b7280">'+p.admin.toFixed(1)+'</td>'
-        +'<td style="padding:6px 10px;text-align:right;font-size:12px;color:#6b7280">'+p.allgemein.toFixed(1)+'</td>'
-        +'<td style="padding:6px 10px;text-align:right;font-size:12px;font-weight:600;color:#1d4ed8">'+p.eff.toFixed(1)+'</td>'
-        +'<td style="padding:6px 10px;text-align:right;font-size:12px;color:#6b7280">'+weissStr+'</td>'
-        +'<td style="padding:6px 10px;text-align:right;white-space:nowrap" title="'+ttip+'">'+ausStr+'</td>'
-        +'</tr>';
-    }).join('');
-    var totWeiss=pArr.reduce(function(s,p){return s+(p.weiss!=null?p.weiss:0);},0);
-    var sumRow='<tr style="background:'+pBg(avg||70)+';border-top:2px solid '+(avg!=null?pC(avg):'#d1d5db')+'">'
-      +'<td style="padding:7px 12px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:'+(avg!=null?pC(avg):'#9ca3af')+'">Ø '+locName+'</td>'
-      +'<td colspan="4" style="padding:6px 10px;font-size:11px;color:#9ca3af;text-align:right">—</td>'
-      +'<td style="padding:6px 10px;text-align:right;font-size:12px;color:#6b7280">'+totWeiss.toFixed(1)+' h</td>'
-      +'<td style="padding:6px 10px;text-align:right;font-weight:800;font-size:13px;color:'+(avg!=null?pC(avg):'#9ca3af')+'">'+(avg!=null?avg.toFixed(1)+'%':'k.A.')+'</td>'
-      +'</tr>';
-    return '<div style="margin:0 28px 20px"><div class="chart-card">'
-      +'<div class="chart-card-hdr" style="border-left:3px solid '+locColor+';padding-left:10px">'
-      +locName+' <span class="cc-sub">'+mLbl+' · '+pArr.length+' Therapeuten</span>'
-      +(avg!=null?'<span style="margin-left:auto;font-size:20px;font-weight:800;color:'+pC(avg)+'">'+avg.toFixed(1)+'%</span>':'')
+  // ---- Row builder ----
+  function buildRow(p) {
+    var pctEl=p.aus!=null
+      ?'<span style="font-size:14px;font-weight:800;color:'+pC(p.aus)+';font-variant-numeric:tabular-nums;flex-shrink:0">'+p.aus.toFixed(1)+'%</span>'
+      :'<span style="font-size:13px;color:#9ca3af;flex-shrink:0">k.A.</span>';
+    var badge=p.role?'<span style="font-size:10px;background:#f3f4f6;color:#9ca3af;border-radius:10px;padding:1px 7px;margin-left:6px;font-weight:500;flex-shrink:0">'+p.role+'</span>':'';
+    var barFill=p.aus!=null
+      ?'<div class="m13-bar-fill" style="background:'+pC(p.aus)+';width:0" data-w="'+Math.min(p.aus,100).toFixed(2)+'"></div>'
+      :'<div style="position:absolute;inset:0;border-radius:4px;background:repeating-linear-gradient(90deg,#e5e7eb 0,#e5e7eb 6px,transparent 6px,transparent 10px);opacity:.5"></div>';
+    var detail=p.aus!=null
+      ?p.eff.toFixed(1)+'h eff&nbsp;·&nbsp;'+p.weiss.toFixed(1)+'h frei&nbsp;·&nbsp;'+p.admin.toFixed(1)+'h Admin'
+      :p.eff.toFixed(1)+'h eff&nbsp;·&nbsp;<span style="color:#d97706">Weisse Fläche fehlt</span>';
+    var ttip=p.aus!=null
+      ?p.geplant.toFixed(1)+'h geplant − '+p.admin.toFixed(1)+'h Admin − '+p.allgemein.toFixed(1)+'h Allg. = '+p.eff.toFixed(1)+'h effektiv&#10;Weisse Fläche: '+p.weiss.toFixed(1)+'h&#10;'+p.eff.toFixed(1)+' ÷ ('+p.eff.toFixed(1)+' + '+p.weiss.toFixed(1)+') × 100 = '+p.aus.toFixed(1)+'%'
+      :p.geplant.toFixed(1)+'h geplant − '+p.admin.toFixed(1)+'h Admin − '+p.allgemein.toFixed(1)+'h Allg. = '+p.eff.toFixed(1)+'h effektiv&#10;Weisse Fläche fehlt';
+    return '<div class="m13-row'+(p.role?' m13-dim':'')+'" title="'+ttip+'">'
+      +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:7px">'
+      +'<span style="font-weight:600;font-size:13px;line-height:1.2">'+p.name+badge+'</span>'
+      +pctEl+'</div>'
+      +'<div style="position:relative;height:8px;background:#e5e7eb;border-radius:4px;overflow:visible;margin-bottom:5px">'
+      +barFill
+      +'<div style="position:absolute;left:85%;top:-4px;bottom:-4px;width:2px;background:rgba(55,65,81,.2);border-radius:1px" title="Ziel 85%"></div>'
       +'</div>'
-      +'<div style="height:'+Math.max(120,pArr.length*30)+'px;position:relative;margin-bottom:10px"><canvas id="'+chartId+'"></canvas></div>'
-      +'<div style="overflow-x:auto"><table style="width:100%;font-size:12px;border-collapse:collapse">'
-      +'<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb">'
-      +'<th style="padding:8px 12px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Therapeut</th>'
-      +'<th style="padding:8px 10px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Geplant h</th>'
-      +'<th style="padding:8px 10px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Admin h</th>'
-      +'<th style="padding:8px 10px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Allgemein h</th>'
-      +'<th style="padding:8px 10px;text-align:right;font-size:10px;color:#1d4ed8;text-transform:uppercase;font-weight:600">Effektiv h</th>'
-      +'<th style="padding:8px 10px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Weisse Fläche</th>'
-      +'<th style="padding:8px 10px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Auslastung</th>'
-      +'</tr></thead><tbody>'+trs+sumRow+'</tbody></table></div></div></div>';
+      +'<div style="font-size:11px;color:#9ca3af">'+detail+'</div>'
+      +'</div>';
   }
 
-  document.getElementById('m13-content').innerHTML=
-    buildSection(klP,'Kloten','#6366f1')+buildSection(zhP,'Zürich','#3b82f6');
-
-  // ---- Charts ----
-  function renderBar(pArr, locName) {
-    if(!pArr.length) return;
-    var chartId='m13-chart-'+locName.toLowerCase().replace(/ü/g,'u');
-    mkChart(chartId,{type:'bar',
-      data:{labels:pArr.map(function(p){return p.name.split(' ')[0];}),
-        datasets:[{label:'Auslastung %',
-          data:pArr.map(function(p){return p.aus!=null?Math.round(p.aus*10)/10:null;}),
-          backgroundColor:pArr.map(function(p){
-            if(p.aus==null) return 'rgba(209,213,219,.6)';
-            return p.aus>=85?'rgba(22,163,74,.82)':p.aus>=70?'rgba(217,119,6,.82)':'rgba(239,68,68,.82)';
-          }),
-          borderRadius:4,borderSkipped:false}]},
-      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},
-          tooltip:{callbacks:{label:function(c){return c.parsed.x!=null?c.parsed.x.toFixed(1)+'%':'k.A.';}}}},
-        scales:{x:{min:0,max:105,ticks:{callback:function(v){return v+'%';},font:{size:11}},grid:{color:'#f3f4f6'}},
-          y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  // ---- Panel builder ----
+  function buildPanel(allRows, locName, locColor) {
+    if(!allRows.length) return '';
+    var bonusRows=allRows.filter(function(p){return !p.role;});
+    var nonBonusRows=allRows.filter(function(p){return !!p.role;});
+    var a=avgAus(allRows);
+    var withData=allRows.filter(function(p){return p.aus!=null;}).length;
+    var rows=locSort(bonusRows).map(buildRow).join('');
+    if(m13ViewMode==='alle'&&nonBonusRows.length){
+      rows+='<div style="padding:5px 16px 4px;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#9ca3af;background:#f9fafb;border-top:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0">Nicht bonusrelevant</div>';
+      rows+=locSort(nonBonusRows).map(buildRow).join('');
+    }
+    return '<div class="m13-panel">'
+      +'<div style="padding:14px 16px 12px;border-bottom:1.5px solid #f3f4f6;display:flex;align-items:flex-end;justify-content:space-between;gap:12px">'
+      +'<div>'
+      +'<div style="font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:'+locColor+'">'+locName+'</div>'
+      +'<div style="font-size:11px;color:#9ca3af;margin-top:3px">'+withData+' von '+allRows.length+' mit Daten · '+mLbl+'</div>'
+      +'</div>'
+      +(a!=null?'<div style="text-align:right;flex-shrink:0"><div style="font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;color:'+pC(a)+'">'+a.toFixed(1)+'%</div><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#9ca3af;margin-top:3px">Ø Auslastung</div></div>':'')
+      +'</div>'
+      +rows+'</div>';
   }
-  renderBar(klP,'Kloten'); renderBar(zhP,'Zürich');
+
+  // ---- Inject styles + render ----
+  var css='<style>'
+    +'.m13-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 28px 0}'
+    +'@media(max-width:760px){.m13-grid{grid-template-columns:1fr}}'
+    +'.m13-panel{background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}'
+    +'.m13-row{padding:10px 16px;border-bottom:1px solid #f3f4f6;transition:background .1s}'
+    +'.m13-row:last-child{border-bottom:none}'
+    +'.m13-row:hover{background:#f9fafb}'
+    +'.m13-dim{opacity:.6}'
+    +'.m13-bar-fill{position:absolute;left:0;top:0;height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}'
+    +'@media(prefers-reduced-motion:reduce){.m13-bar-fill{transition:none}}'
+    +'</style>';
+
+  document.getElementById('m13-content').innerHTML=css
+    +'<div class="m13-grid" style="margin-bottom:28px">'
+    +buildPanel(klAll,'Kloten','#4F46E5')
+    +buildPanel(zhAll,'Zürich','#0284C7')
+    +'</div>';
+
+  // Animate bars after DOM paint
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    document.querySelectorAll('.m13-bar-fill[data-w]').forEach(function(el){
+      el.style.width=el.getAttribute('data-w')+'%';
+    });
+  });});
 }
 /* ---- end renderM13 ---- */
 
