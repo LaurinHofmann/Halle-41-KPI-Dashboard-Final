@@ -1658,7 +1658,7 @@ function updateHomeTiles() {
         return tot.toLocaleString('de-CH')+' VOs · Ø '+avg.toFixed(2)+' Termine'; }},
     { id:'ht10-kv', key:'m10', fn: d => null },
 
-    { id:'ht11-kv', key:'m11', fn: d => { const mai=PAT_RAW.filter(r=>r.m==='2026-05'); const tot=mai.reduce((s,r)=>s+r.total,0); const abs=mai.reduce((s,r)=>s+r.abs,0); return tot>0?(abs/tot*100).toFixed(1)+'% Absagequote · Mai 26':null; } },
+    { id:'ht11-kv', key:'m11', fn: d => { const jun=PAT_RAW.filter(r=>r.m==='2026-06'); const tot=jun.reduce((s,r)=>s+r.total,0); const abs=jun.reduce((s,r)=>s+r.abs,0); return tot>0?(abs/tot*100).toFixed(1)+'% Absagequote · Jun 26':null; } },
   ];
   tiles.forEach(t => {
     const el = document.getElementById(t.id);
@@ -5179,6 +5179,27 @@ const PAT_RAW = [
   {t:"Tomas",m:"2026-03",loc:"Zürich",total:367,abs:60,online:53},
   {t:"Tomas",m:"2026-04",loc:"Zürich",total:303,abs:27,online:43},
   {t:"Tomas",m:"2026-05",loc:"Zürich",total:169,abs:24,online:25},
+  // Juni 2026
+  {t:"Andrei",m:"2026-06",loc:"Kloten",total:194,abs:23,online:25},
+  {t:"Anna",m:"2026-06",loc:"Kloten",total:245,abs:18,online:13},
+  {t:"Antonio",m:"2026-06",loc:"Kloten",total:287,abs:37,online:45},
+  {t:"Damir",m:"2026-06",loc:"Kloten",total:220,abs:16,online:34},
+  {t:"Dominic",m:"2026-06",loc:"Kloten",total:83,abs:8,online:8},
+  {t:"Dominique",m:"2026-06",loc:"Kloten",total:93,abs:11,online:8},
+  {t:"Florian",m:"2026-06",loc:"Kloten",total:340,abs:43,online:34},
+  {t:"Gabriela",m:"2026-06",loc:"Kloten",total:316,abs:27,online:34},
+  {t:"Isabell",m:"2026-06",loc:"Kloten",total:192,abs:39,online:30},
+  {t:"Philippe",m:"2026-06",loc:"Kloten",total:231,abs:16,online:71},
+  {t:"Robin",m:"2026-06",loc:"Kloten",total:241,abs:27,online:17},
+  {t:"Cléo",m:"2026-06",loc:"Zürich",total:241,abs:25,online:59},
+  {t:"David",m:"2026-06",loc:"Zürich",total:348,abs:39,online:67},
+  {t:"Johanna",m:"2026-06",loc:"Zürich",total:252,abs:13,online:26},
+  {t:"Lara",m:"2026-06",loc:"Zürich",total:269,abs:4,online:78},
+  {t:"Maya",m:"2026-06",loc:"Zürich",total:176,abs:13,online:26},
+  {t:"Nadja",m:"2026-06",loc:"Zürich",total:193,abs:21,online:38},
+  {t:"Noah",m:"2026-06",loc:"Zürich",total:210,abs:22,online:22},
+  {t:"Sophia",m:"2026-06",loc:"Zürich",total:406,abs:29,online:78},
+  {t:"Tomas",m:"2026-06",loc:"Zürich",total:222,abs:25,online:40},
 ];
 // ─── ZÜRICH: Auslastung_2026 ZH.xlsx ───────────────────────────────────────
 // Formel ZH: (Front Netto − Weisse Zeit) / Front Netto
