@@ -5362,11 +5362,11 @@ const AUSLASTUNG_LOC_MAP = {
   'bakarcic':'Kloten','dobler':'Kloten','lozic':'Kloten','sokolov':'Kloten',
   'post':'Kloten','goncalves':'Kloten','mader':'Kloten','wimberska':'Kloten',
   'crameri':'Kloten','buchschacher':'Kloten','jurovicova':'Kloten',
-  'müller':'Kloten','muller':'Kloten','hirter':'Kloten','haller':'Kloten',
+  'müller':'Kloten','muller':'Kloten','hirter':'Kloten','haller':'Zuerich',
 };
 
 // Personen komplett ausgeblendet (kein Kalender-Tracking)
-const AUSLASTUNG_EXCLUDE_NN = new Set(['Crameri','März','Schälin']);
+const AUSLASTUNG_EXCLUDE_NN = new Set(['Crameri','März','Schälin','Buchschacher']);
 
 // Nachname → Rolle für nicht-bonusrelevante Personen (kein Umsatzmodell)
 const AUSLASTUNG_NON_BONUS = {'Buchschacher':'Masseur','Hirter':'Student','Muncan':'Masseur'};
@@ -5390,6 +5390,13 @@ function toggleM13Info() {
 function getAuslastungAllData() {
   var uploaded=JSON.parse(localStorage.getItem('h41_auslastung_uploaded')||'[]');
   var all=AUSLASTUNG_CENPLEX.concat(uploaded).filter(function(d){ return !AUSLASTUNG_EXCLUDE_NN.has(d.nachname); });
+  // Re-apply LOC_MAP to fix any mis-stored locations (e.g. from old uploads)
+  all=all.map(function(d){
+    var nnL=d.nachname.toLowerCase();
+    var nnN=nnL.replace(/ä/g,'a').replace(/ö/g,'o').replace(/ü/g,'u');
+    var loc=AUSLASTUNG_LOC_MAP[nnL]||AUSLASTUNG_LOC_MAP[nnN]||d.loc;
+    return loc===d.loc?d:Object.assign({},d,{loc:loc});
+  });
   // Dedup by vorname+nachname+month: prefer last entry (uploaded > CENPLEX estimate)
   var seen={}, deduped=[];
   all.slice().reverse().forEach(function(d){ var k=d.vorname+'|'+d.nachname+'|'+d.month; if(!seen[k]){seen[k]=true;deduped.push(d);} });
@@ -5592,37 +5599,22 @@ function renderM13() {
   var zhAll=locSort(visPersons.filter(function(p){return p.loc==='Zuerich'||p.loc==='Zürich';}));
   function avgAus(arr){var v=arr.filter(function(p){return p.aus!=null;});return v.length?v.reduce(function(s,p){return s+p.aus;},0)/v.length:null;}
 
-  // ---- KPIs: always show latest available month ----
-  var latestMonth=months[months.length-1];
-  var latestMo=parseInt(latestMonth.split('-')[1])-1;
-  var latestLbl=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'][latestMo]+' '+latestMonth.split('-')[0];
-  var latestData=allData.filter(function(d){return d.month===latestMonth&&d.geplant>0;});
-  var latestPersons=latestData.map(function(d){
-    var eff=Math.max(0,d.geplant-d.admin-d.allgemein);
-    var weiss=getWeissForPerson(d.vorname,d.nachname,latestMonth,d.loc);
-    var aus=(eff>0&&weiss!=null)?eff/(eff+weiss)*100:null;
-    return {loc:d.loc,aus:aus,role:AUSLASTUNG_NON_BONUS[d.nachname]||null};
-  });
-  var latestVis=m13ViewMode==='therapeuten'?latestPersons.filter(function(p){return !p.role;}):latestPersons;
-  var klL=latestVis.filter(function(p){return p.loc==='Kloten';});
-  var zhL=latestVis.filter(function(p){return p.loc==='Zuerich'||p.loc==='Zürich';});
-  var klLatest=avgAus(klL), zhLatest=avgAus(zhL);
-
-  // ---- Home tile ----
+  // ---- Home tile + KPI tiles (use selected month) ----
+  var klAvg=avgAus(klAll), zhAvg=avgAus(zhAll);
   var ht=document.getElementById('ht13-kv');
   if(ht){
-    var htTxt=(klLatest!=null?'KL '+klLatest.toFixed(0)+'%':'')+' '+(zhLatest!=null?'ZH '+zhLatest.toFixed(0)+'%':'');
-    ht.className='ht-kv'; ht.style.color=''; ht.textContent=htTxt.trim()+' · '+['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][latestMo]+' '+latestMonth.split('-')[0];
+    var htTxt=(klAvg!=null?'KL '+klAvg.toFixed(0)+'%':'')+' '+(zhAvg!=null?'ZH '+zhAvg.toFixed(0)+'%':'');
+    ht.className='ht-kv'; ht.style.color=''; ht.textContent=htTxt.trim()+' · '+['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][mo2]+' '+selMonth.split('-')[0];
   }
 
   var modeLabel=m13ViewMode==='therapeuten'?' (Bonusrelevant)':'';
   document.getElementById('m13-kpis').innerHTML=
     mkpiHtml('','Ø Kloten'+modeLabel,
-      klLatest!=null?'<span style="color:'+pC(klLatest)+'">'+klLatest.toFixed(1)+'%</span>':'<span style="color:#9ca3af">k.A.</span>',
-      latestLbl+' (aktuell) · '+klL.filter(function(p){return p.aus!=null;}).length+' Personen')+
+      klAvg!=null?'<span style="color:'+pC(klAvg)+'">'+klAvg.toFixed(1)+'%</span>':'<span style="color:#9ca3af">k.A.</span>',
+      mLbl+' · '+klAll.filter(function(p){return p.aus!=null;}).length+' Personen')+
     mkpiHtml('','Ø Zürich'+modeLabel,
-      zhLatest!=null?'<span style="color:'+pC(zhLatest)+'">'+zhLatest.toFixed(1)+'%</span>':'<span style="color:#9ca3af">k.A.</span>',
-      latestLbl+' (aktuell) · '+zhL.filter(function(p){return p.aus!=null;}).length+' Personen')+
+      zhAvg!=null?'<span style="color:'+pC(zhAvg)+'">'+zhAvg.toFixed(1)+'%</span>':'<span style="color:#9ca3af">k.A.</span>',
+      mLbl+' · '+zhAll.filter(function(p){return p.aus!=null;}).length+' Personen')+
     mkpiHtml('','Formel','Effektiv ÷ (Effektiv + Weisse Fläche)','Effektiv = Geplant − Admin − Allgemein')+
     mkpiHtml('','Legende','<span style="color:#16a34a">●</span> ≥85%&nbsp;&nbsp;<span style="color:#d97706">●</span> 70–85%&nbsp;&nbsp;<span style="color:#ef4444">●</span> &lt;70%','');
 
