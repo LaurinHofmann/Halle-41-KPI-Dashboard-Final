@@ -5907,14 +5907,14 @@ function m14list(data){
     +'</tr></tfoot>':'';
   return '<div class="mod-kpis">'+kpi+'</div>'
     +'<div style="margin:12px 28px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-    +'<button onclick="m14v='form';m14eid=null;renderM14()" style="padding:6px 14px;background:#111827;color:#fff;border:none;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer">+ Therapeut erfassen</button>'
+    +'<button onclick="m14v=\x27form\x27;m14eid=null;renderM14()" style="padding:6px 14px;background:#111827;color:#fff;border:none;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer">+ Therapeut erfassen</button>'
     +'<button onclick="m14exportCSV()" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">↓ CSV</button>'
     +'<button onclick="m14exportJSON()" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">↓ JSON</button>'
     +'<label style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">↑ Import<input type="file" accept=".json" style="display:none" onchange="m14import(this)"></label>'
     +'<span style="font-size:11px;color:#9ca3af">Auszahlung erfolgt im Januar 2027</span>'
     +'</div>'
     +'<div style="margin:0 28px 24px"><div class="chart-card" style="padding:0;overflow-x:auto">'
-    +'<div style="padding:14px 16px 10px;border-bottom:1px solid #f3f4f6"><div class="chart-card-hdr" style="margin:0">Jahresumsatz-Übersicht <span class="cc-sub">2026 · Klick auf Zeile = Detailansicht · 🔴 unter Schwelle · 🟡 Bonus · 🟢 ab 165'000 × Pensum</span></div></div>'
+    +'<div style="padding:14px 16px 10px;border-bottom:1px solid #f3f4f6"><div class="chart-card-hdr" style="margin:0">Jahresumsatz-Übersicht <span class="cc-sub">2026 · Klick auf Zeile = Detailansicht · 🔴 unter Schwelle · 🟡 Bonus · 🟢 ab 165&#39;000 × Pensum</span></div></div>'
     +'<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:820px">'+thead+tbody+tfoot+'</table>'
     +'</div></div>';
 }
@@ -6065,11 +6065,9 @@ function m14save2(){
 
 function m14exportCSV(){
   var d=m14ld();if(!d.length)return;
-  var hdr='Name,Pensum%,Eintrittsdatum,Austrittsdatum,Umsatz,Stichdatum,Ferientage,Weiterbildungstage,Unfalltage,Krankheitstage,Jahresumsatz_hochger,BonusCHF
-';
+  var hdr='Name,Pensum%,Eintrittsdatum,Austrittsdatum,Umsatz,Stichdatum,Ferientage,Weiterbildungstage,Unfalltage,Krankheitstage,Jahresumsatz_hochger,BonusCHF\n';
   var rows=d.map(function(t){var c=m14calc(t);return[t.name,Math.round(t.pensum*100),t.eintrittsdatum,t.austrittsdatum,t.umsatz,t.stichdatum,t.ferientage,t.weiterbildungstage,t.unfalltage,t.krankheitstage,c.jahres||'',c.bchf||''].join(',');});
-  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(hdr+rows.join('
-'));a.download='Jahreslohn_2026.csv';a.click();
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(hdr+rows.join('\n'));a.download='Jahreslohn_2026.csv';a.click();
 }
 function m14exportJSON(){
   var d=m14ld();if(!d.length)return;
