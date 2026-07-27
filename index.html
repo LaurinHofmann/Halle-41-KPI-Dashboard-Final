@@ -1007,12 +1007,13 @@ td{padding:8px 12px;vertical-align:middle}
 <!-- ===== MODULE 10: THERAPEUTEN-SCORECARD ===== -->
 <div id="view-m10" style="display:none">
   <div style="display:flex;gap:6px;padding:10px 28px 0;flex-wrap:wrap" id="m10-month-bar">
-    <button onclick="setM10Month('all',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">Gesamt Jan–Mai</button>
+    <button onclick="setM10Month('all',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">Gesamt Jan–Jun</button>
     <button onclick="setM10Month('2026-01',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Januar</button>
     <button onclick="setM10Month('2026-02',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Februar</button>
     <button onclick="setM10Month('2026-03',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">März</button>
     <button onclick="setM10Month('2026-04',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">April</button>
     <button onclick="setM10Month('2026-05',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Mai</button>
+    <button onclick="setM10Month('2026-06',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Juni</button>
   </div>
   <div class="mod-kpis" id="m10-kpis"></div>
   <div id="m10-content"></div>
@@ -2065,6 +2066,26 @@ const T_SCORECARD_INIT=[
   {therapist:'Isabell Müller',location:'Kloten',month:'2026-03',termine:107,revenue:7433.90,mtt:0,mttC:4},
   {therapist:'Isabell Müller',location:'Kloten',month:'2026-04',termine:136,revenue:9528.62,mtt:0,mttC:16},
   {therapist:'Isabell Müller',location:'Kloten',month:'2026-05',termine:163,revenue:12012.85,mtt:0,mttC:18},
+  // Juni 2026
+  {therapist:'Maya Keller',location:'Zuerich',month:'2026-06',termine:87,revenue:6282.04,mtt:0,mttC:20},
+  {therapist:'Nadja Lösch',location:'Zuerich',month:'2026-06',termine:141,revenue:11282.48,mtt:0,mttC:7},
+  {therapist:'Sophia Gallmetzer',location:'Zuerich',month:'2026-06',termine:225,revenue:20013.15,mtt:0,mttC:131},
+  {therapist:'Lara Dannenbauer',location:'Zuerich',month:'2026-06',termine:158,revenue:13603.97,mtt:0,mttC:88},
+  {therapist:'David Deplazes',location:'Zuerich',month:'2026-06',termine:186,revenue:17799.99,mtt:0,mttC:95},
+  {therapist:'Tomas Ciuzelis',location:'Zuerich',month:'2026-06',termine:161,revenue:11822.23,mtt:0,mttC:29},
+  {therapist:'Cléo Mathys',location:'Zuerich',month:'2026-06',termine:130,revenue:11155.15,mtt:0,mttC:68},
+  {therapist:'Noah Aldaro',location:'Zuerich',month:'2026-06',termine:105,revenue:12067.93,mtt:0,mttC:64},
+  {therapist:'Johanna Haller',location:'Zuerich',month:'2026-06',termine:166,revenue:11932.59,mtt:0,mttC:25},
+  {therapist:'Damir Bakarcic',location:'Kloten',month:'2026-06',termine:140,revenue:12297.96,mtt:0,mttC:38},
+  {therapist:'Philippe Dobler',location:'Kloten',month:'2026-06',termine:177,revenue:13305.50,mtt:0,mttC:25},
+  {therapist:'Antonio Lozic',location:'Kloten',month:'2026-06',termine:186,revenue:15995.67,mtt:0,mttC:49},
+  {therapist:'Andrei Sokolov',location:'Kloten',month:'2026-06',termine:118,revenue:10301.09,mtt:0,mttC:42},
+  {therapist:'Robin Post',location:'Kloten',month:'2026-06',termine:164,revenue:12667.87,mtt:0,mttC:54},
+  {therapist:'Dominique Goncalves',location:'Kloten',month:'2026-06',termine:57,revenue:4970.62,mtt:0,mttC:28},
+  {therapist:'Anna Jurovicova',location:'Kloten',month:'2026-06',termine:162,revenue:14322.45,mtt:0,mttC:68},
+  {therapist:'Florian Mader',location:'Kloten',month:'2026-06',termine:212,revenue:19301.79,mtt:0,mttC:92},
+  {therapist:'Gabriela Wimberska',location:'Kloten',month:'2026-06',termine:211,revenue:17580.20,mtt:0,mttC:69},
+  {therapist:'Isabell Müller',location:'Kloten',month:'2026-06',termine:135,revenue:11048.36,mtt:0,mttC:23},
 ];
 
 const P_STATS_INIT=[
@@ -3483,7 +3504,7 @@ function getAbsRate(m10Name, m10Loc, month) {
   return tot>=10?Math.round(abs/tot*1000)/10:null;
 }
 function getUtilPct(m10Name, loc) {
-  var m13Months=['2026-01','2026-02','2026-03','2026-04','2026-05'];
+  var m13Months=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
   var m13Vals=m13Months.map(function(m){return getM13UtilForName(m10Name,loc,m);}).filter(function(v){return v!=null;});
   if(m13Vals.length) return Math.round(m13Vals.reduce(function(a,b){return a+b;},0)/m13Vals.length*10)/10;
   // M10 names: "Vorname Nachname" → surname = last word
@@ -3515,13 +3536,13 @@ function renderM10() {
   const voAll = loadModData('vo');
   const earlyAll = loadModData('vo_early');
   const moLbl = m=>{const[,mo]=m.split('-');return['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][parseInt(mo)-1];};
-  const MONTHS = ['2026-01','2026-02','2026-03','2026-04','2026-05'];
+  const MONTHS = ['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
 
   const allNames = [...new Set(scRaw.map(r=>r.therapist))];
   const locFiltered = gLoc==='all' ? scRaw : scRaw.filter(r=>r.location===(gLoc==='Zuerich'?'Zuerich':'Kloten'));
   const raw = gM10Month==='all' ? locFiltered : locFiltered.filter(r=>r.month===gM10Month);
   const names = [...new Set(raw.map(r=>r.therapist))];
-  const moLblSel = gM10Month==='all' ? 'Jan–Mai 2026' : ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][parseInt(gM10Month.split('-')[1])-1]+' 2026';
+  const moLblSel = gM10Month==='all' ? 'Jan–Jun 2026' : ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][parseInt(gM10Month.split('-')[1])-1]+' 2026';
 
   if(!names.length){document.getElementById('m10-kpis').innerHTML='';document.getElementById('m10-content').innerHTML=modEmpty('m10');return;}
 
