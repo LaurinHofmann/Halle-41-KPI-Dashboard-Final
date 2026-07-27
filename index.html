@@ -5881,7 +5881,7 @@ function m14list(data){
     if(c.err)return '<tr><td colspan="'+colspan+'" style="padding:7px 10px;color:#ef4444;font-size:11px">'+t.name+': '+c.err+'</td></tr>';
     var sw=c.stale?'<span title="Stichdatum älter als 30 Tage" style="color:#f59e0b;margin-left:4px;cursor:help">⚠</span>':'';
     var stlbl=c.si>=0?'Stufe '+(c.si+1)+'/'+M14_BONUS.length:'–';
-    return '<tr style="border-bottom:1px solid #f3f4f6;background:'+(i%2?'#f9fafb':'#fff')+';cursor:pointer" onclick="m14open(''+t.id+'')">'
+    return '<tr style="border-bottom:1px solid #f3f4f6;background:'+(i%2?'#f9fafb':'#fff')+';cursor:pointer" onclick="m14open(\x27'+t.id+'\x27)">'
       +'<td style="padding:7px 10px;font-weight:600;white-space:nowrap">'+t.name+sw+'</td>'
       +'<td style="padding:7px 10px;text-align:right">'+Math.round(t.pensum*100)+'%</td>'
       +'<td style="padding:7px 8px;text-align:right;color:#6b7280;font-size:11px">'+t.stichdatum+'</td>'
@@ -5892,7 +5892,7 @@ function m14list(data){
       +'<td style="padding:7px 8px;text-align:right;font-weight:700;color:'+col.c+'">'+chf(c.bchf,0)+'</td>'
       +'<td style="padding:7px 8px;text-align:right;color:#6b7280">'+(c.delta!=null?chf(c.delta,0):'–')+'</td>'
       +(hasExit?'<td style="padding:7px 8px;text-align:right">'+(c.ausz!=null?chf(c.ausz,0):'–')+'</td>':'')
-      +'<td style="padding:7px 8px"><button onclick="event.stopPropagation();m14edit(''+t.id+'')" style="font-size:11px;padding:2px 8px;border:1px solid #d1d5db;border-radius:4px;background:#fff;cursor:pointer">✏</button></td>'
+      +'<td style="padding:7px 8px"><button onclick="event.stopPropagation();m14edit(\x27'+t.id+'\x27)" style="font-size:11px;padding:2px 8px;border:1px solid #d1d5db;border-radius:4px;background:#fff;cursor:pointer">✏</button></td>'
       +'</tr>';
   }).join('')+'</tbody>'
   :'<tbody><tr><td colspan="'+colspan+'" style="padding:40px;text-align:center;color:#9ca3af">Noch keine Einträge — «+ Therapeut erfassen» klicken</td></tr></tbody>';
@@ -5937,8 +5937,8 @@ function m14detail(t,c){
     +rw('Anteilige Auszahlung',c.ausz!=null?chf(c.ausz,0):'–','Bonus × Anteil'):'';
   return '<div style="padding:14px 28px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
     +'<button onclick="m14back()" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">← Übersicht</button>'
-    +'<button onclick="m14edit(''+t.id+'')" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">✏ Bearbeiten</button>'
-    +'<button onclick="m14del(''+t.id+'')" style="padding:5px 12px;border:1.5px solid #fecaca;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#ef4444">🗑 Löschen</button>'
+    +'<button onclick="m14edit(\x27'+t.id+'\x27)" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">✏ Bearbeiten</button>'
+    +'<button onclick="m14del(\x27'+t.id+'\x27)" style="padding:5px 12px;border:1.5px solid #fecaca;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#ef4444">🗑 Löschen</button>'
     +'<div style="margin-left:auto;font-size:20px;font-weight:900;color:'+col.c+'">'+chf(c.jahres,0)+' Jahresumsatz</div>'
     +'</div>'
     +staleW
@@ -6007,7 +6007,7 @@ function m14form(data){
     +'<div id="m14-preview" style="margin-top:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:12px;color:#374151;min-height:26px"></div>'
     +'<div style="margin-top:14px;display:flex;gap:8px">'
     +'<button onclick="m14save2()" style="padding:7px 20px;background:#111827;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>'
-    +(m14eid?'<button onclick="m14del(''+m14eid+'')" style="padding:7px 14px;border:1.5px solid #fecaca;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#ef4444">Löschen</button>':'')
+    +(m14eid?'<button onclick="m14del(\x27'+m14eid+'\x27)" style="padding:7px 14px;border:1.5px solid #fecaca;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#ef4444">Löschen</button>':'')
     +'</div></div></div>'
     +'<div style="margin:0 28px 16px;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:11.5px;color:#0c4a6e">'
     +'<strong>Hinweise:</strong> Umsatz = Therapieumsatz ohne MTT. '
