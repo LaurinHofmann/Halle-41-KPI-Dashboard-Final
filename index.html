@@ -822,6 +822,12 @@ td{padding:8px 12px;vertical-align:middle}
       <div class="ht-dsc">Alt (7301/7311) vs. Neu (27110) — CHF-Impact & Szenarien mit Taxpunktwert-Slider</div>
       <div id="ht12-kv" class="ht-kv" style="color:#ef4444"></div>
     </div>
+    <div class="ht ht-bl" onclick="enterMod('m14','💰 Umsatz-Jahreslohn')">
+      <div class="ht-ico">💰</div>
+      <div class="ht-tit">Umsatz-Jahreslohn</div>
+      <div class="ht-dsc">Hochgerechneter Jahresumsatz · Bonusstufe · Δ bis nächste Stufe · alle Therapeuten</div>
+      <div id="ht14-kv" class="ht-nd"></div>
+    </div>
   </div>
 </div>
 
@@ -1382,6 +1388,10 @@ td{padding:8px 12px;vertical-align:middle}
   </div>
 </div>
 
+<div id="view-m14" style="display:none">
+  <div id="m14-main" style="padding-bottom:40px"></div>
+</div>
+
 <script>
 /* ===================== DATA ===================== */
 const MONTHS = ["2024-07","2024-08","2024-09","2024-10","2024-11","2024-12","2025-01","2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05"];
@@ -1554,7 +1564,7 @@ function setGLoc(l, btn) {
 
 /* ===================== VIEW TOGGLE ===================== */
 function allModViews() {
-  return ['home','einbruch','besuche','m2','m3','m4','m5','m6','m8','m10','m11','m12','m13'];
+  return ['home','einbruch','besuche','m2','m3','m4','m5','m6','m8','m10','m11','m12','m13','m14'];
 }
 
 function setView(v, el) {
@@ -1594,7 +1604,7 @@ function setView(v, el) {
 function goHome() {
   activeModKey = null;
   // Explizit alle Modul-Inhalte leeren und Ansichten verstecken
-  ['m2','m3','m4','m5','m6','m8','m10','m11','m12','m13'].forEach(function(k){
+  ['m2','m3','m4','m5','m6','m8','m10','m11','m12','m13','m14'].forEach(function(k){
     var v=document.getElementById('view-'+k);
     if(v) v.style.display='none';
     var kp=document.getElementById(k+'-kpis');
@@ -1673,6 +1683,16 @@ function updateHomeTiles() {
   const periodEl = document.getElementById('ht8-period');
   if (periodEl) periodEl.textContent = M8_ZEITRAUM;
   if (activeModKey === 'm8') renderM8();
+  // m14: Jahreslohn
+  var ht14=document.getElementById('ht14-kv');
+  if(ht14){
+    var d14=m14ld();
+    if(d14.length){
+      var bonusN14=d14.filter(function(t){var c=m14calc(t);return c.si>=0;}).length;
+      ht14.className='ht-kv-lite';
+      ht14.textContent=d14.length+' Therapeuten · '+bonusN14+' mit Bonus';
+    } else {ht14.className='ht-nd';ht14.textContent='Keine Daten erfasst';}
+  }
   // m12: embedded data, set tile directly
   const ht12 = document.getElementById('ht12-kv');
   if (ht12) {
@@ -2218,6 +2238,7 @@ function renderMod(key) {
   else if (key==='m11') renderM11();
   else if (key==='m12') renderM12();
   else if (key==='m13') renderM13();
+  else if (key==='m14') renderM14();
 }
 
 /* ===== HELPERS FOR MODULES ===== */
@@ -5742,6 +5763,332 @@ function renderM13() {
   if(el&&n) el.textContent=n;
   if(rl&&r) rl.textContent={'admin':'Admin','bereichsleiter':'Bereichsleiter:in','fachlicher-leiter':'Fachlicher Leiter'}[r]||'';
 })();
+
+/* ===================== MODULE 14 – UMSATZ-JAHRESLOHN ===================== */
+const REFERENZTAGE_M14=223;
+const M14_BONUS=[
+  {thr:150000,b:1500},{thr:152500,b:2000},{thr:155000,b:2500},
+  {thr:157500,b:3000},{thr:160000,b:3500},{thr:162500,b:4000},
+  {thr:165000,b:5000},{thr:167500,b:6000},{thr:170000,b:7000},
+  {thr:172500,b:8000},{thr:175000,b:9000}
+];
+// Konfigurierbar: Feiertage 2026 Kanton Zürich (nur Werktage)
+const M14_HOL=['2026-01-01','2026-01-02','2026-04-03','2026-04-06','2026-05-01','2026-05-14','2026-05-25','2026-12-25'];
+var m14v='list',m14eid=null;
+
+function m14ld(){try{return JSON.parse(localStorage.getItem('h41_m14_data')||'[]');}catch(e){return[];}}
+function m14sv(a){localStorage.setItem('h41_m14_data',JSON.stringify(a));}
+function m14uid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,5);}
+
+function m14wdays(from,to){
+  var d=new Date(from),end=new Date(to),wd=0,hol=0;
+  d.setHours(0,0,0,0);end.setHours(0,0,0,0);
+  while(d<=end){
+    var dow=d.getDay();
+    if(dow>=1&&dow<=5){wd++;if(M14_HOL.includes(d.toISOString().slice(0,10)))hol++;}
+    d.setDate(d.getDate()+1);
+  }
+  return{wd:wd,hol:hol};
+}
+
+function m14calc(t){
+  var pen=t.pensum,ys=new Date('2026-01-01');
+  var ein=new Date(t.eintrittsdatum||'2026-01-01');
+  var start=ein>ys?ein:ys;
+  var stich=new Date(t.stichdatum);
+  if(!t.stichdatum||isNaN(stich.getTime()))return{err:'Kein Stichdatum'};
+  if(stich<start)return{err:'Stichdatum vor Periodestart ('+start.toISOString().slice(0,10)+')'};
+  var wc=m14wdays(start,stich);
+  var net=(wc.wd-wc.hol)*pen;
+  var garb=Math.max(0,net-(t.ferientage||0)-(t.weiterbildungstage||0)-(t.unfalltage||0));
+  var rate=garb>0?t.umsatz/garb:0;
+  var jahres=Math.round(rate*REFERENZTAGE_M14*pen);
+  var si=-1,bchf=0;
+  for(var i=0;i<M14_BONUS.length;i++){if(jahres>=M14_BONUS[i].thr*pen){si=i;bchf=Math.round(M14_BONUS[i].b*pen);}}
+  var nxt=si<M14_BONUS.length-1?Math.ceil(M14_BONUS[si+1].thr*pen):null;
+  var delta=nxt!=null?nxt-jahres:null;
+  var ant=null,ausz=null;
+  if(t.austrittsdatum){var ref=REFERENZTAGE_M14*pen;ant=ref>0?Math.min(1,garb/ref):null;ausz=ant!=null?Math.round(bchf*ant):null;}
+  var stale=Math.floor((Date.now()-stich.getTime())/86400000)>30;
+  return{start:start.toISOString().slice(0,10),wd:wc.wd,hol:wc.hol,net:Math.round(net*10)/10,garb:Math.round(garb*10)/10,rate:rate,jahres:jahres,si:si,bchf:bchf,nxt:nxt,delta:delta,ant:ant,ausz:ausz,stale:stale};
+}
+
+function m14col(jahres,pen){
+  if(jahres>=165000*pen)return{c:'#16a34a',bg:'#dcfce7'};
+  if(jahres>=M14_BONUS[0].thr*pen)return{c:'#d97706',bg:'#fef9c3'};
+  return{c:'#ef4444',bg:'#fee2e2'};
+}
+
+function m14minibar(jahres,pen){
+  var max=M14_BONUS[M14_BONUS.length-1].thr*pen*1.05;
+  var pct=Math.min(100,jahres/max*100);
+  return '<div style="background:#f3f4f6;border-radius:3px;height:5px;margin-top:4px;overflow:hidden"><div style="height:5px;border-radius:3px;background:'+m14col(jahres,pen).c+';width:'+pct.toFixed(1)+'%"></div></div>';
+}
+
+function m14bigbar(jahres,pen){
+  var max=M14_BONUS[M14_BONUS.length-1].thr*pen*1.05;
+  var pct=Math.min(100,jahres/max*100);
+  var col=m14col(jahres,pen).c;
+  var marks=M14_BONUS.map(function(b,i){
+    var mp=Math.min(100,b.thr*pen/max*100);
+    var showLbl=i===0||i===4||i===M14_BONUS.length-1;
+    return '<div style="position:absolute;left:'+mp.toFixed(1)+'%;top:0;width:2px;height:14px;background:#9ca3af;transform:translateX(-50%)"></div>'
+      +(showLbl?'<div style="position:absolute;left:'+mp.toFixed(1)+'%;top:16px;font-size:8.5px;color:#9ca3af;transform:translateX(-50%);white-space:nowrap">'+chf(b.thr*pen,0)+'</div>':'');
+  }).join('');
+  var dot='<div style="position:absolute;left:'+pct.toFixed(1)+'%;top:-3px;width:14px;height:20px;border-radius:7px;background:'+col+';transform:translateX(-50%);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)"></div>';
+  return '<div style="position:relative;margin:24px 12px 40px">'
+    +'<div style="height:14px;background:#f3f4f6;border-radius:7px;overflow:hidden"><div style="height:14px;background:'+col+';width:'+pct.toFixed(1)+'%;border-radius:7px;transition:width .5s"></div></div>'
+    +marks+dot+'</div>';
+}
+
+function renderM14(){
+  var el=document.getElementById('m14-main');if(!el)return;
+  var data=m14ld();
+  if(m14v==='detail'&&m14eid){var r=data.find(function(x){return x.id===m14eid;});if(r){el.innerHTML=m14detail(r,m14calc(r));return;}m14v='list';}
+  if(m14v==='form'){el.innerHTML=m14form(data);m14formInit();return;}
+  el.innerHTML=m14list(data);
+}
+
+function m14open(id){m14v='detail';m14eid=id;renderM14();}
+function m14back(){m14v='list';m14eid=null;renderM14();}
+function m14edit(id){m14v='form';m14eid=id;renderM14();}
+function m14del(id){
+  if(!confirm('Eintrag löschen?'))return;
+  m14sv(m14ld().filter(function(r){return r.id!==id;}));
+  m14v='list';m14eid=null;renderM14();updateHomeTiles();
+}
+
+function m14list(data){
+  var rows=data.map(function(t){return{t:t,c:m14calc(t)};});
+  rows.sort(function(a,b){return a.t.name.localeCompare(b.t.name,'de');});
+  var hasExit=rows.some(function(r){return r.t.austrittsdatum;});
+  var totU=rows.reduce(function(s,r){return s+r.t.umsatz;},0);
+  var totJ=rows.reduce(function(s,r){return s+(r.c.jahres||0);},0);
+  var totB=rows.reduce(function(s,r){return s+(r.c.bchf||0);},0);
+  var bonusN=rows.filter(function(r){return r.c.si>=0;}).length;
+  var greenN=rows.filter(function(r){return r.c.jahres>=165000*r.t.pensum;}).length;
+  var kpi=rows.length?
+    mkpiHtml('','Therapeuten',rows.length+'',bonusN+' mit Bonus · '+greenN+' Grün-Bereich')
+    +mkpiHtml('','Ø Jahresumsatz (hochger.)',chf(rows.length?Math.round(totJ/rows.length):0,0),'Jan–Dez 2026 Prognose')
+    +mkpiHtml('','Total Bonus',chf(totB,0),'Auszahlung Januar 2027'):'';
+  var th=function(l,tip){return '<th style="padding:8px 8px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600;white-space:nowrap"'+(tip?' title="'+tip+'"':'')+'>'+(tip?l+' ⓘ':l)+'</th>';};
+  var thl=function(l){return '<th style="padding:8px 10px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600;white-space:nowrap">'+l+'</th>';};
+  var thead='<thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb">'
+    +thl('Name')+thl('Pensum')+th('Stichdatum','')+th('Umsatz CHF','')+th('Tage','Gearbeitete Tage')+th('Jahresumsatz','Hochgerechneter Jahresumsatz')+th('Stufe','')+th('Bonus CHF','')+th('Δ nächste Stufe','CHF bis zur nächsten Bonusstufe')+(hasExit?th('Auszahlung','Anteilig bei Austrittsdatum'):'')+'<th></th></tr></thead>';
+  var colspan=(hasExit?11:10);
+  var tbody=rows.length?'<tbody>'+rows.map(function(row,i){
+    var t=row.t,c=row.c,col=m14col(c.jahres,t.pensum);
+    if(c.err)return '<tr><td colspan="'+colspan+'" style="padding:7px 10px;color:#ef4444;font-size:11px">'+t.name+': '+c.err+'</td></tr>';
+    var sw=c.stale?'<span title="Stichdatum älter als 30 Tage" style="color:#f59e0b;margin-left:4px;cursor:help">⚠</span>':'';
+    var stlbl=c.si>=0?'Stufe '+(c.si+1)+'/'+M14_BONUS.length:'–';
+    return '<tr style="border-bottom:1px solid #f3f4f6;background:'+(i%2?'#f9fafb':'#fff')+';cursor:pointer" onclick="m14open(''+t.id+'')">'
+      +'<td style="padding:7px 10px;font-weight:600;white-space:nowrap">'+t.name+sw+'</td>'
+      +'<td style="padding:7px 10px;text-align:right">'+Math.round(t.pensum*100)+'%</td>'
+      +'<td style="padding:7px 8px;text-align:right;color:#6b7280;font-size:11px">'+t.stichdatum+'</td>'
+      +'<td style="padding:7px 8px;text-align:right">'+chf(t.umsatz,0)+'</td>'
+      +'<td style="padding:7px 8px;text-align:right;color:#6b7280">'+c.garb+'</td>'
+      +'<td style="padding:7px 8px;text-align:right;min-width:120px"><div style="font-weight:700;color:'+col.c+'">'+chf(c.jahres,0)+'</div>'+m14minibar(c.jahres,t.pensum)+'</td>'
+      +'<td style="padding:7px 8px;text-align:center"><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:'+col.bg+';color:'+col.c+';font-weight:600">'+stlbl+'</span></td>'
+      +'<td style="padding:7px 8px;text-align:right;font-weight:700;color:'+col.c+'">'+chf(c.bchf,0)+'</td>'
+      +'<td style="padding:7px 8px;text-align:right;color:#6b7280">'+(c.delta!=null?chf(c.delta,0):'–')+'</td>'
+      +(hasExit?'<td style="padding:7px 8px;text-align:right">'+(c.ausz!=null?chf(c.ausz,0):'–')+'</td>':'')
+      +'<td style="padding:7px 8px"><button onclick="event.stopPropagation();m14edit(''+t.id+'')" style="font-size:11px;padding:2px 8px;border:1px solid #d1d5db;border-radius:4px;background:#fff;cursor:pointer">✏</button></td>'
+      +'</tr>';
+  }).join('')+'</tbody>'
+  :'<tbody><tr><td colspan="'+colspan+'" style="padding:40px;text-align:center;color:#9ca3af">Noch keine Einträge — «+ Therapeut erfassen» klicken</td></tr></tbody>';
+  var tfoot=rows.length?'<tfoot><tr style="background:#f1f5f9;border-top:2px solid #e5e7eb;font-weight:700">'
+    +'<td style="padding:7px 10px;font-size:11px;color:#374151;text-transform:uppercase">Total / Ø</td>'
+    +'<td></td><td></td>'
+    +'<td style="padding:7px 8px;text-align:right">'+chf(totU,0)+'</td><td></td>'
+    +'<td style="padding:7px 8px;text-align:right">Ø '+chf(rows.length?Math.round(totJ/rows.length):0,0)+'</td>'
+    +'<td></td>'
+    +'<td style="padding:7px 8px;text-align:right">'+chf(totB,0)+'</td>'
+    +'<td></td>'+(hasExit?'<td></td>':'')+'<td></td>'
+    +'</tr></tfoot>':'';
+  return '<div class="mod-kpis">'+kpi+'</div>'
+    +'<div style="margin:12px 28px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+    +'<button onclick="m14v='form';m14eid=null;renderM14()" style="padding:6px 14px;background:#111827;color:#fff;border:none;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer">+ Therapeut erfassen</button>'
+    +'<button onclick="m14exportCSV()" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">↓ CSV</button>'
+    +'<button onclick="m14exportJSON()" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">↓ JSON</button>'
+    +'<label style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">↑ Import<input type="file" accept=".json" style="display:none" onchange="m14import(this)"></label>'
+    +'<span style="font-size:11px;color:#9ca3af">Auszahlung erfolgt im Januar 2027</span>'
+    +'</div>'
+    +'<div style="margin:0 28px 24px"><div class="chart-card" style="padding:0;overflow-x:auto">'
+    +'<div style="padding:14px 16px 10px;border-bottom:1px solid #f3f4f6"><div class="chart-card-hdr" style="margin:0">Jahresumsatz-Übersicht <span class="cc-sub">2026 · Klick auf Zeile = Detailansicht · 🔴 unter Schwelle · 🟡 Bonus · 🟢 ab 165'000 × Pensum</span></div></div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:820px">'+thead+tbody+tfoot+'</table>'
+    +'</div></div>';
+}
+
+function m14detail(t,c){
+  if(c.err)return '<div style="padding:28px"><button onclick="m14back()" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">← Zurück</button><p style="color:#ef4444;margin-top:12px">Fehler: '+c.err+'</p></div>';
+  var col=m14col(c.jahres,t.pensum);
+  var rw=function(lbl,val,note){return '<tr><td style="padding:5px 14px;color:#6b7280;font-size:12px;width:55%">'+lbl+'</td><td style="padding:5px 14px;text-align:right;font-size:12px;font-weight:600">'+val+'</td><td style="padding:5px 14px;font-size:11px;color:#9ca3af">'+(note||'')+'</td></tr>';};
+  var sep=function(lbl){return '<tr style="background:#f9fafb"><td colspan="3" style="padding:5px 14px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em">'+lbl+'</td></tr>';};
+  var bonusRows=M14_BONUS.map(function(b,i){
+    var st=Math.round(b.thr*t.pensum),sb=Math.round(b.b*t.pensum),active=i===c.si,reached=c.jahres>=st;
+    return '<tr style="background:'+(active?col.bg:'')+'"><td style="padding:4px 14px;font-size:11px;color:#6b7280">Stufe '+(i+1)+'</td>'
+      +'<td style="padding:4px 14px;text-align:right;font-size:11px">'+chf(st,0)+'</td>'
+      +'<td style="padding:4px 14px;text-align:right;font-size:11px;font-weight:'+(active?'700':'400')+';color:'+(reached?col.c:'#9ca3af')+'">'+chf(sb,0)+'</td>'
+      +'<td style="padding:4px 14px;font-size:11px;color:'+col.c+'">'+(active?'← aktuell':reached?'✓':'')+'</td></tr>';
+  }).join('');
+  var staleW=c.stale?'<div style="margin:0 28px 8px;padding:8px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:12px;color:#92400e">⚠ Stichdatum älter als 30 Tage — bitte aktualisieren.</div>':'';
+  var anteilRows=t.austrittsdatum?sep('Anteilige Auszahlung (Austritt: '+t.austrittsdatum+')')
+    +rw('Jahres-Anteil',c.ant!=null?(c.ant*100).toFixed(1)+'%':'–','gearbeitete Tage ÷ (223 × Pensum)')
+    +rw('Anteilige Auszahlung',c.ausz!=null?chf(c.ausz,0):'–','Bonus × Anteil'):'';
+  return '<div style="padding:14px 28px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+    +'<button onclick="m14back()" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">← Übersicht</button>'
+    +'<button onclick="m14edit(''+t.id+'')" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">✏ Bearbeiten</button>'
+    +'<button onclick="m14del(''+t.id+'')" style="padding:5px 12px;border:1.5px solid #fecaca;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#ef4444">🗑 Löschen</button>'
+    +'<div style="margin-left:auto;font-size:20px;font-weight:900;color:'+col.c+'">'+chf(c.jahres,0)+' Jahresumsatz</div>'
+    +'</div>'
+    +staleW
+    +'<div style="margin:12px 28px 12px;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">'
+    +'<div class="chart-card"><div class="chart-card-hdr">'+t.name+' <span class="cc-sub">'+Math.round(t.pensum*100)+'% Pensum · Stichtag '+t.stichdatum+'</span></div>'
+    +'<table style="width:100%;border-collapse:collapse">'+sep('Zeitraum')
+    +rw('Periodestart',c.start,'Eintritt oder 1.1.2026 — was später ist')
+    +rw('Werktage (Mo–Fr)',c.wd,'')
+    +rw('Davon Feiertage',c.hol,'abgezogen')
+    +sep('Anwesenheitsabzüge')
+    +rw('Netto × Pensum '+Math.round(t.pensum*100)+'%',c.net,'(Werktage − Feiertage) × Pensum')
+    +rw('− Bezogene Ferientage',t.ferientage||0,'')
+    +rw('− Weiterbildungstage',t.weiterbildungstage||0,'')
+    +rw('− Unfalltage',t.unfalltage||0,'')
+    +(t.krankheitstage?rw('Krankheitstage (informativ)',t.krankheitstage,'kein Abzug'):'')
+    +sep('Ergebnis')
+    +rw('= Gearbeitete Tage','<strong style="font-size:15px">'+c.garb+'</strong>','')
+    +'</table></div>'
+    +'<div class="chart-card"><div class="chart-card-hdr">Hochrechnung & Bonus</div>'
+    +'<table style="width:100%;border-collapse:collapse">'+sep('Umsatz')
+    +rw('Aktueller Therapie-Umsatz',chf(t.umsatz,0),'')
+    +rw('Umsatz pro Arbeitstag',chf(c.rate,2),'')
+    +sep('Hochrechnung')
+    +rw('× Referenztage',''+REFERENZTAGE_M14,'261 Werktage − 8 Feiertage − 25 Ferien − 5 WBT')
+    +rw('× Pensum',''+Math.round(t.pensum*100)+'%','')
+    +rw('= Hochgerechneter Jahresumsatz','<span style="font-size:16px;font-weight:800;color:'+col.c+'">'+chf(c.jahres,0)+'</span>','')
+    +sep('Bonus')
+    +rw('Erreichte Stufe',c.si>=0?'Stufe '+(c.si+1)+' / '+M14_BONUS.length:'kein Bonus','')
+    +rw('Bonus CHF','<span style="font-size:15px;font-weight:800;color:'+col.c+'">'+chf(c.bchf,0)+'</span>','')
+    +(c.delta!=null?rw('Δ bis nächste Stufe',chf(c.delta,0),'noch '+chf(c.delta,0)+' bis '+chf(c.nxt,0)):'')
+    +anteilRows
+    +'</table></div></div>'
+    +'<div style="margin:0 28px 12px" class="chart-card"><div class="chart-card-hdr">Fortschritt <span class="cc-sub">Markierungen = Bonusstufen (skaliert auf Pensum)</span></div>'
+    +m14bigbar(c.jahres,t.pensum)+'</div>'
+    +'<div style="margin:0 28px 20px" class="chart-card"><div class="chart-card-hdr">Bonustabelle <span class="cc-sub">skaliert auf '+Math.round(t.pensum*100)+'% Pensum · Auszahlung Januar 2027</span></div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f9fafb;border-bottom:1.5px solid #e5e7eb">'
+    +'<th style="padding:6px 14px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase">Stufe</th>'
+    +'<th style="padding:6px 14px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase">Jahresumsatz ab</th>'
+    +'<th style="padding:6px 14px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase">Bonus CHF</th>'
+    +'<th></th></tr></thead><tbody>'+bonusRows+'</tbody></table></div>';
+}
+
+function m14form(data){
+  var isNew=!m14eid,t=isNew?{}:data.find(function(r){return r.id===m14eid;})||{};
+  var fld=function(id,lbl,type,val,extra){return '<div style="margin-bottom:12px"><label style="display:block;font-size:11px;font-weight:600;color:#374151;margin-bottom:4px">'+lbl+'</label><input id="m14f-'+id+'" type="'+type+'" value="'+(val||'')+'" '+extra+' style="width:100%;padding:7px 10px;border:1.5px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box"></div>';};
+  return '<div style="padding:14px 28px 0;display:flex;align-items:center;gap:10px">'
+    +'<button onclick="m14back()" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">← Abbrechen</button>'
+    +'<span style="font-weight:700;font-size:14px">'+(isNew?'Neuer Therapeut':'Bearbeiten: '+(t.name||''))+'</span>'
+    +'</div>'
+    +'<div style="margin:14px 28px;max-width:580px" class="chart-card"><div class="chart-card-hdr">Daten erfassen</div><div style="padding:0 4px">'
+    +fld('name','Name (Vorname Nachname)','text',t.name,'placeholder="z.B. Lara Dannenbauer"')
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    +fld('pensum','Pensum %','number',Math.round((t.pensum||1)*100),'min="10" max="100" step="5"')
+    +fld('stichdatum','Stichdatum *','date',t.stichdatum,'')
+    +'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    +fld('eintrittsdatum','Eintrittsdatum (leer = 1.1.2026)','date',t.eintrittsdatum||'','')
+    +fld('austrittsdatum','Austrittsdatum (optional)','date',t.austrittsdatum||'','')
+    +'</div>'
+    +fld('umsatz','Aktueller Therapie-Umsatz CHF *','number',t.umsatz||'','min="0" step="100" placeholder="z.B. 95000"')
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">'
+    +fld('ferientage','Ferientage (bezogen)','number',t.ferientage||0,'min="0"')
+    +fld('weiterbildungstage','Weiterbildungstage','number',t.weiterbildungstage||0,'min="0"')
+    +fld('unfalltage','Unfalltage','number',t.unfalltage||0,'min="0"')
+    +fld('krankheitstage','Krankheitstage (info)','number',t.krankheitstage||0,'min="0"')
+    +'</div>'
+    +'<div id="m14-preview" style="margin-top:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:12px;color:#374151;min-height:26px"></div>'
+    +'<div style="margin-top:14px;display:flex;gap:8px">'
+    +'<button onclick="m14save2()" style="padding:7px 20px;background:#111827;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>'
+    +(m14eid?'<button onclick="m14del(''+m14eid+'')" style="padding:7px 14px;border:1.5px solid #fecaca;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#ef4444">Löschen</button>':'')
+    +'</div></div></div>'
+    +'<div style="margin:0 28px 16px;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:11.5px;color:#0c4a6e">'
+    +'<strong>Hinweise:</strong> Umsatz = Therapieumsatz ohne MTT. '
+    +'Die 223 Referenztage beinhalten Ferien und Weiterbildung bereits — hier nur die <em>bisher bezogenen</em> Tage eingeben. '
+    +'Krankheitstage werden nicht abgezogen. '
+    +(t.austrittsdatum?'Stichtag bei Kündigung = 15. des letzten Arbeitsmonats.':'')
+    +'</div>';
+}
+
+function m14formInit(){
+  ['name','pensum','stichdatum','eintrittsdatum','umsatz','ferientage','weiterbildungstage','unfalltage'].forEach(function(f){
+    var el=document.getElementById('m14f-'+f);if(el)el.addEventListener('input',m14preview);
+  });
+  m14preview();
+}
+
+function m14preview(){
+  var pr=document.getElementById('m14-preview');if(!pr)return;
+  try{
+    var t=m14formRead();
+    if(!t.name||!t.stichdatum||t.umsatz===''||t.umsatz==null){pr.innerHTML='';return;}
+    var c=m14calc(t);
+    if(c.err){pr.innerHTML='<span style="color:#ef4444">'+c.err+'</span>';return;}
+    var col=m14col(c.jahres,t.pensum);
+    pr.innerHTML='<strong>Vorschau:</strong> '+c.garb+' gearbeitete Tage → <strong style="color:'+col.c+'">'+chf(c.jahres,0)+' hochgerechnet</strong>'+(c.si>=0?' → Bonus '+chf(c.bchf,0):' → kein Bonus');
+  }catch(e){pr.innerHTML='';}
+}
+
+function m14formRead(){
+  var g=function(id){var el=document.getElementById('m14f-'+id);return el?el.value:'';};
+  var pen=Math.max(0.01,Math.min(1,(parseFloat(g('pensum'))||100)/100));
+  return{
+    id:m14eid||m14uid(),
+    name:(g('name')||'').trim(),
+    pensum:pen,
+    eintrittsdatum:g('eintrittsdatum')||'',
+    austrittsdatum:g('austrittsdatum')||'',
+    umsatz:parseFloat(g('umsatz'))||0,
+    stichdatum:g('stichdatum')||'',
+    ferientage:parseInt(g('ferientage'))||0,
+    weiterbildungstage:parseInt(g('weiterbildungstage'))||0,
+    unfalltage:parseInt(g('unfalltage'))||0,
+    krankheitstage:parseInt(g('krankheitstage'))||0,
+  };
+}
+
+function m14save2(){
+  var t=m14formRead();
+  if(!t.name){alert('Bitte Name eingeben.');return;}
+  if(!t.stichdatum){alert('Bitte Stichdatum eingeben.');return;}
+  var d=m14ld().filter(function(r){return r.id!==t.id;});
+  d.push(t);m14sv(d);
+  m14v='detail';m14eid=t.id;renderM14();updateHomeTiles();
+}
+
+function m14exportCSV(){
+  var d=m14ld();if(!d.length)return;
+  var hdr='Name,Pensum%,Eintrittsdatum,Austrittsdatum,Umsatz,Stichdatum,Ferientage,Weiterbildungstage,Unfalltage,Krankheitstage,Jahresumsatz_hochger,BonusCHF
+';
+  var rows=d.map(function(t){var c=m14calc(t);return[t.name,Math.round(t.pensum*100),t.eintrittsdatum,t.austrittsdatum,t.umsatz,t.stichdatum,t.ferientage,t.weiterbildungstage,t.unfalltage,t.krankheitstage,c.jahres||'',c.bchf||''].join(',');});
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(hdr+rows.join('
+'));a.download='Jahreslohn_2026.csv';a.click();
+}
+function m14exportJSON(){
+  var d=m14ld();if(!d.length)return;
+  var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(d,null,2));a.download='Jahreslohn_2026.json';a.click();
+}
+function m14import(input){
+  var f=input.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var arr=JSON.parse(e.target.result);
+      if(!Array.isArray(arr))throw new Error('Kein Array');
+      arr=arr.map(function(t){return Object.assign({pensum:1,ferientage:0,weiterbildungstage:0,unfalltage:0,krankheitstage:0},t,{id:t.id||m14uid()});});
+      m14sv(arr);renderM14();updateHomeTiles();alert('✓ '+arr.length+' Einträge importiert.');
+    }catch(e2){alert('Import-Fehler: '+e2.message);}
+  };
+  r.readAsText(f);
+}
+
 setView('home', null);
 function showScoreTip(e,el){
   var t=document.getElementById('kpi-score-tip');if(!t)return;
