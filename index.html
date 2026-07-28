@@ -5800,17 +5800,21 @@ function m14calc(t){
   if(stich<start)return{err:'Stichdatum vor Periodestart ('+start.toISOString().slice(0,10)+')'};
   var wc=m14wdays(start,stich);
   var net=(wc.wd-wc.hol)*pen;
-  var garb=Math.max(0,net-(t.ferientage||0)-(t.weiterbildungstage||0)-(t.unfalltage||0));
+  var zf=(t.zusatzferientage||0);
+  var garb=Math.max(0,net-(t.ferientage||0)-zf-(t.weiterbildungstage||0)-(t.unfalltage||0));
+  var effRef=REFERENZTAGE_M14-zf;
   var rate=garb>0?t.umsatz/garb:0;
-  var jahres=Math.round(rate*REFERENZTAGE_M14*pen);
+  var jahres=Math.round(rate*effRef*pen);
+  var frOpt=(t.ferientage_rest||0);var rNet=0;
+  if(frOpt>0){var st1=new Date(stich.getTime()+86400000);var rWC2=m14wdays(st1,new Date('2026-12-31'));var rWBT=Math.max(0,5-(t.weiterbildungstage||0));rNet=Math.max(0,(rWC2.wd-rWC2.hol)*pen-frOpt-rWBT);jahres=Math.round(t.umsatz+rate*rNet);}
   var si=-1,bchf=0;
   for(var i=0;i<M14_BONUS.length;i++){if(jahres>=M14_BONUS[i].thr*pen){si=i;bchf=Math.round(M14_BONUS[i].b*pen);}}
   var nxt=si<M14_BONUS.length-1?Math.ceil(M14_BONUS[si+1].thr*pen):null;
   var delta=nxt!=null?nxt-jahres:null;
   var ant=null,ausz=null;
-  if(t.austrittsdatum){var ref=REFERENZTAGE_M14*pen;ant=ref>0?Math.min(1,garb/ref):null;ausz=ant!=null?Math.round(bchf*ant):null;}
+  if(t.austrittsdatum){var ref=effRef*pen;ant=ref>0?Math.min(1,garb/ref):null;ausz=ant!=null?Math.round(bchf*ant):null;}
   var stale=Math.floor((Date.now()-stich.getTime())/86400000)>30;
-  return{start:start.toISOString().slice(0,10),wd:wc.wd,hol:wc.hol,net:Math.round(net*10)/10,garb:Math.round(garb*10)/10,rate:rate,jahres:jahres,si:si,bchf:bchf,nxt:nxt,delta:delta,ant:ant,ausz:ausz,stale:stale};
+  return{start:start.toISOString().slice(0,10),wd:wc.wd,hol:wc.hol,net:Math.round(net*10)/10,garb:Math.round(garb*10)/10,rate:rate,jahres:jahres,si:si,bchf:bchf,nxt:nxt,delta:delta,ant:ant,ausz:ausz,stale:stale,effRef:effRef,zf:zf,frOpt:frOpt,rNet:rNet};
 }
 
 function m14col(jahres,pen){
@@ -5953,6 +5957,7 @@ function m14detail(t,c){
     +rw('− Bezogene Ferientage',t.ferientage||0,'')
     +rw('− Weiterbildungstage',t.weiterbildungstage||0,'')
     +rw('− Unfalltage',t.unfalltage||0,'')
+    +(t.zusatzferientage?rw('− Zusatzferientage (Bonus/BZ)',t.zusatzferientage,'von Referenztagen abgezogen'):'')
     +(t.krankheitstage?rw('Krankheitstage (informativ)',t.krankheitstage,'kein Abzug'):'')
     +sep('Ergebnis')
     +rw('= Gearbeitete Tage','<strong style="font-size:15px">'+c.garb+'</strong>','')
@@ -5962,8 +5967,9 @@ function m14detail(t,c){
     +rw('Aktueller Therapie-Umsatz',chf(t.umsatz,0),'')
     +rw('Umsatz pro Arbeitstag',chf(c.rate,2),'')
     +sep('Hochrechnung')
-    +rw('× Referenztage',''+REFERENZTAGE_M14,'261 Werktage − 8 Feiertage − 25 Ferien − 5 WBT')
+    +rw('× Referenztage (effektiv)',''+c.effRef,(c.zf?''+REFERENZTAGE_M14+' − '+c.zf+' Zusatzferientage':'261 Werktage − 8 Feiertage − 25 Ferien − 5 WBT'))
     +rw('× Pensum',''+Math.round(t.pensum*100)+'%','')
+    +(c.frOpt>0?rw('Restperiode-Modus',Math.round(c.rNet*10)/10+' Arbeitstage','geplante Restferientage: '+c.frOpt+' abgezogen'):'')
     +rw('= Hochgerechneter Jahresumsatz','<span style="font-size:16px;font-weight:800;color:'+col.c+'">'+chf(c.jahres,0)+'</span>','')
     +sep('Bonus')
     +rw('Erreichte Stufe',c.si>=0?'Stufe '+(c.si+1)+' / '+M14_BONUS.length:'kein Bonus','')
@@ -6004,6 +6010,8 @@ function m14form(data){
     +fld('unfalltage','Unfalltage','number',t.unfalltage||0,'min="0"')
     +fld('krankheitstage','Krankheitstage (info)','number',t.krankheitstage||0,'min="0"')
     +'</div>'
+    +fld('zusatzferientage','Zusatzferientage (Gewinnspiel / Betriebszugehörigkeit)','number',t.zusatzferientage||0,'min="0" title="Werden von den 223 Referenztagen abgezogen"')
+    +fld('ferientage_rest','Noch zu beziehende Ferientage (Rest 2026)','number',t.ferientage_rest||0,'min="0" title="Schaltet Restperiode-Modus ein: Jahresumsatz = bisheriger Umsatz + Rate x verbleibende Arbeitstage"')
     +'<div id="m14-preview" style="margin-top:12px;padding:10px 14px;background:#f9fafb;border-radius:8px;font-size:12px;color:#374151;min-height:26px"></div>'
     +'<div style="margin-top:14px;display:flex;gap:8px">'
     +'<button onclick="m14save2()" style="padding:7px 20px;background:#111827;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>'
@@ -6013,12 +6021,14 @@ function m14form(data){
     +'<strong>Hinweise:</strong> Umsatz = Therapieumsatz ohne MTT. '
     +'Die 223 Referenztage beinhalten Ferien und Weiterbildung bereits — hier nur die <em>bisher bezogenen</em> Tage eingeben. '
     +'Krankheitstage werden nicht abgezogen. '
+    +'Zusatzferientage (Bonus/BZ) werden von den 223 Ref.-tagen abgezogen. '
+    +'Restferientage aktiviert Restperiode-Modus: Jahresumsatz = bisheriger Umsatz + Rate × verbleibende Arbeitstage. '
     +(t.austrittsdatum?'Stichtag bei Kündigung = 15. des letzten Arbeitsmonats.':'')
     +'</div>';
 }
 
 function m14formInit(){
-  ['name','pensum','stichdatum','eintrittsdatum','umsatz','ferientage','weiterbildungstage','unfalltage'].forEach(function(f){
+  ['name','pensum','stichdatum','eintrittsdatum','umsatz','ferientage','weiterbildungstage','unfalltage','zusatzferientage','ferientage_rest'].forEach(function(f){
     var el=document.getElementById('m14f-'+f);if(el)el.addEventListener('input',m14preview);
   });
   m14preview();
@@ -6051,6 +6061,8 @@ function m14formRead(){
     weiterbildungstage:parseInt(g('weiterbildungstage'))||0,
     unfalltage:parseInt(g('unfalltage'))||0,
     krankheitstage:parseInt(g('krankheitstage'))||0,
+    zusatzferientage:parseInt(g('zusatzferientage'))||0,
+    ferientage_rest:parseInt(g('ferientage_rest'))||0,
   };
 }
 
@@ -6065,8 +6077,8 @@ function m14save2(){
 
 function m14exportCSV(){
   var d=m14ld();if(!d.length)return;
-  var hdr='Name,Pensum%,Eintrittsdatum,Austrittsdatum,Umsatz,Stichdatum,Ferientage,Weiterbildungstage,Unfalltage,Krankheitstage,Jahresumsatz_hochger,BonusCHF\n';
-  var rows=d.map(function(t){var c=m14calc(t);return[t.name,Math.round(t.pensum*100),t.eintrittsdatum,t.austrittsdatum,t.umsatz,t.stichdatum,t.ferientage,t.weiterbildungstage,t.unfalltage,t.krankheitstage,c.jahres||'',c.bchf||''].join(',');});
+  var hdr='Name,Pensum%,Eintrittsdatum,Austrittsdatum,Umsatz,Stichdatum,Ferientage,Weiterbildungstage,Unfalltage,Krankheitstage,Zusatzferientage,Restferientage,Jahresumsatz_hochger,BonusCHF\n';
+  var rows=d.map(function(t){var c=m14calc(t);return[t.name,Math.round(t.pensum*100),t.eintrittsdatum,t.austrittsdatum,t.umsatz,t.stichdatum,t.ferientage,t.weiterbildungstage,t.unfalltage,t.krankheitstage,t.zusatzferientage||0,t.ferientage_rest||0,c.jahres||'',c.bchf||''].join(',');});
   var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(hdr+rows.join('\n'));a.download='Jahreslohn_2026.csv';a.click();
 }
 function m14exportJSON(){
@@ -6080,7 +6092,7 @@ function m14import(input){
     try{
       var arr=JSON.parse(e.target.result);
       if(!Array.isArray(arr))throw new Error('Kein Array');
-      arr=arr.map(function(t){return Object.assign({pensum:1,ferientage:0,weiterbildungstage:0,unfalltage:0,krankheitstage:0},t,{id:t.id||m14uid()});});
+      arr=arr.map(function(t){return Object.assign({pensum:1,ferientage:0,weiterbildungstage:0,unfalltage:0,krankheitstage:0,zusatzferientage:0,ferientage_rest:0},t,{id:t.id||m14uid()});});
       m14sv(arr);renderM14();updateHomeTiles();alert('✓ '+arr.length+' Einträge importiert.');
     }catch(e2){alert('Import-Fehler: '+e2.message);}
   };
