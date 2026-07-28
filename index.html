@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="__BUILD__">
+<meta name="app-build" content="20260728100645">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -5773,7 +5773,8 @@ const M14_BONUS=[
   {thr:172500,b:8000},{thr:175000,b:9000}
 ];
 // Konfigurierbar: Feiertage 2026 Kanton Zürich (nur Werktage)
-const M14_HOL=['2026-01-01','2026-01-02','2026-04-03','2026-04-06','2026-05-01','2026-05-14','2026-05-25','2026-12-25'];
+const M14_HOL=['2026-01-01','2026-04-03','2026-04-06','2026-05-01','2026-05-14','2026-05-25','2026-12-25'];
+const M14_HOL_HALF=['2026-12-24','2026-12-31'];
 var m14v='list',m14eid=null;
 
 function m14ld(){try{return JSON.parse(localStorage.getItem('h41_m14_data')||'[]');}catch(e){return[];}}
@@ -5785,7 +5786,12 @@ function m14wdays(from,to){
   d.setHours(0,0,0,0);end.setHours(0,0,0,0);
   while(d<=end){
     var dow=d.getDay();
-    if(dow>=1&&dow<=5){wd++;if(M14_HOL.includes(d.toISOString().slice(0,10)))hol++;}
+    if(dow>=1&&dow<=5){
+      wd++;
+      var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      if(M14_HOL.includes(ds))hol++;
+      else if(M14_HOL_HALF.includes(ds))hol+=0.5;
+    }
     d.setDate(d.getDate()+1);
   }
   return{wd:wd,hol:hol};
