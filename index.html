@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="__BUILD__">
+<meta http-equiv="Expires" content="20260729150402">
 <meta name="app-build" content="20260728100645">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
@@ -115,7 +115,7 @@ var H41_SEED_DATA = {
 (function(){
   try{
     if(localStorage.getItem('h41_seed_version') !== H41_SEED_VERSION){
-      for(var k in H41_SEED_DATA){ localStorage.setItem(k, H41_SEED_DATA[k]); }
+      for(var k in H41_SEED_DATA){ if(localStorage.getItem(k)===null) localStorage.setItem(k, H41_SEED_DATA[k]); }
       localStorage.setItem('h41_seed_version', H41_SEED_VERSION);
     }
   }catch(e){}
