@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260803141222">
+<meta name="app-build" content="20260805162050">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -5823,20 +5823,47 @@ function m14wdays(from,to){
   return{wd:wd,hol:hol};
 }
 
+// Pensum-gewichtete Nettoarbeitstage über einen Zeitraum mit optionalen Pensum-Änderungen
+function m14netDays(rangeFrom,rangeTo,initialPen,changes){
+  var from=new Date(rangeFrom);from.setHours(0,0,0,0);
+  var to=new Date(rangeTo);to.setHours(0,0,0,0);
+  if(from>to)return 0;
+  var sorted=(changes||[]).slice().sort(function(a,b){return a.von<b.von?-1:1;});
+  var total=0,curPen=initialPen,curStart=from;
+  for(var i=0;i<sorted.length;i++){
+    var cDate=new Date(sorted[i].von);cDate.setHours(0,0,0,0);
+    if(cDate<=from){curPen=sorted[i].pensum;continue;}
+    if(cDate>to)break;
+    var segEnd=new Date(cDate.getTime()-86400000);
+    if(curStart<=segEnd){var wc0=m14wdays(curStart,segEnd);total+=(wc0.wd-wc0.hol)*curPen;}
+    curPen=sorted[i].pensum;curStart=cDate;
+  }
+  if(curStart<=to){var wc1=m14wdays(curStart,to);total+=(wc1.wd-wc1.hol)*curPen;}
+  return total;
+}
+
 function m14calc(t){
-  var pen=t.pensum,ys=new Date('2026-01-01');
+  var ys=new Date('2026-01-01');
   var ein=new Date(t.eintrittsdatum||'2026-01-01');
   var start=ein>ys?ein:ys;
   var stich=new Date(t.stichdatum);
   if(!t.stichdatum||isNaN(stich.getTime()))return{err:'Kein Stichdatum'};
   if(stich<start)return{err:'Stichdatum vor Periodestart ('+start.toISOString().slice(0,10)+')'};
-  var wc=m14wdays(start,stich);
-  var net=(wc.wd-wc.hol)*pen;
+  var changes=((t.pensumChanges||[]).filter(function(c){return c.von&&c.pensum>0;})).slice().sort(function(a,b){return a.von<b.von?-1:1;});
+  // Effektives Pensum am Stichdatum (letzter Wert der vor dem Stichtag gilt)
+  var pen=t.pensum;
+  for(var ci=0;ci<changes.length;ci++){if(changes[ci].von<=t.stichdatum)pen=changes[ci].pensum;}
+  // Pensum-gewichtete Nettoarbeitstage bis Stichdatum
+  var net=m14netDays(start,stich,t.pensum,changes);
   var zf=(t.zusatzferientage||0);
   var garb=Math.max(0,net-(t.ferientage||0)-zf-(t.weiterbildungstage||0)-(t.unfalltage||0));
+  // Jahreslohn-Hochrechnung: avgPen = pensum-gewichtete Jahreskapazität / 253 Brutto-Werktage
+  // → bei konstantem Pensum exakt gleich wie bisherige Formel (rate × effRef × pen)
+  var fullYearNet=m14netDays(new Date('2026-01-01'),new Date('2026-12-31'),t.pensum,changes);
+  var avgPen=fullYearNet/253;
   var effRef=REFERENZTAGE_M14-zf;
   var rate=garb>0?t.umsatz/garb:0;
-  var jahres=Math.round(rate*effRef*pen);
+  var jahres=Math.round(rate*effRef*avgPen);
   var frOpt=(t.ferientage_rest||0);var rNet=0;
   if(frOpt>0){var st1=new Date(stich.getTime()+86400000);var rWC2=m14wdays(st1,new Date('2026-12-31'));var rWBT=Math.max(0,5-(t.weiterbildungstage||0));rNet=Math.max(0,(rWC2.wd-rWC2.hol)*pen-frOpt-rWBT);jahres=Math.round(t.umsatz+rate*rNet);}
   var si=-1,bchf=0;
@@ -5844,9 +5871,9 @@ function m14calc(t){
   var nxt=si<M14_BONUS.length-1?Math.ceil(M14_BONUS[si+1].thr*pen):null;
   var delta=nxt!=null?nxt-jahres:null;
   var ant=null,ausz=null;
-  if(t.austrittsdatum){var ref=effRef*pen;ant=ref>0?Math.min(1,garb/ref):null;ausz=ant!=null?Math.round(bchf*ant):null;}
+  if(t.austrittsdatum){var ref=effRef*avgPen;ant=ref>0?Math.min(1,garb/ref):null;ausz=ant!=null?Math.round(bchf*ant):null;}
   var stale=Math.floor((Date.now()-stich.getTime())/86400000)>30;
-  return{start:start.toISOString().slice(0,10),wd:wc.wd,hol:wc.hol,net:Math.round(net*10)/10,garb:Math.round(garb*10)/10,rate:rate,jahres:jahres,si:si,bchf:bchf,nxt:nxt,delta:delta,ant:ant,ausz:ausz,stale:stale,effRef:effRef,zf:zf,frOpt:frOpt,rNet:rNet};
+  return{start:start.toISOString().slice(0,10),net:Math.round(net*10)/10,garb:Math.round(garb*10)/10,rate:rate,jahres:jahres,si:si,bchf:bchf,nxt:nxt,delta:delta,ant:ant,ausz:ausz,stale:stale,effRef:effRef,zf:zf,frOpt:frOpt,rNet:rNet,pen:pen,avgPen:avgPen,changes:changes};
 }
 
 function m14col(jahres,pen){
@@ -5902,7 +5929,7 @@ function m14list(data){
   var totJ=rows.reduce(function(s,r){return s+(r.c.jahres||0);},0);
   var totB=rows.reduce(function(s,r){return s+(r.c.bchf||0);},0);
   var bonusN=rows.filter(function(r){return r.c.si>=0;}).length;
-  var greenN=rows.filter(function(r){return r.c.jahres>=165000*r.t.pensum;}).length;
+  var greenN=rows.filter(function(r){return r.c.jahres>=165000*r.c.pen;}).length;
   var kpi=rows.length?
     mkpiHtml('','Therapeuten',rows.length+'',bonusN+' mit Bonus · '+greenN+' Grün-Bereich')
     +mkpiHtml('','Ø Jahresumsatz (hochger.)',chf(rows.length?Math.round(totJ/rows.length):0,0),'Jan–Dez 2026 Prognose')
@@ -5913,17 +5940,17 @@ function m14list(data){
     +thl('Name')+thl('Pensum')+th('Stichdatum','')+th('Umsatz CHF','')+th('Tage','Gearbeitete Tage')+th('Jahresumsatz','Hochgerechneter Jahresumsatz')+th('Stufe','')+th('Bonus CHF','')+th('Δ nächste Stufe','CHF bis zur nächsten Bonusstufe')+(hasExit?th('Auszahlung','Anteilig bei Austrittsdatum'):'')+'<th></th></tr></thead>';
   var colspan=(hasExit?11:10);
   var tbody=rows.length?'<tbody>'+rows.map(function(row,i){
-    var t=row.t,c=row.c,col=m14col(c.jahres,t.pensum);
+    var t=row.t,c=row.c,col=m14col(c.jahres,c.pen);
     if(c.err)return '<tr><td colspan="'+colspan+'" style="padding:7px 10px;color:#ef4444;font-size:11px">'+t.name+': '+c.err+'</td></tr>';
     var sw=c.stale?'<span title="Stichdatum älter als 30 Tage" style="color:#f59e0b;margin-left:4px;cursor:help">⚠</span>':'';
     var stlbl=c.si>=0?'Stufe '+(c.si+1)+'/'+M14_BONUS.length:'–';
     return '<tr style="border-bottom:1px solid #f3f4f6;background:'+(i%2?'#f9fafb':'#fff')+';cursor:pointer" onclick="m14open(\x27'+t.id+'\x27)">'
       +'<td style="padding:7px 10px;font-weight:600;white-space:nowrap">'+t.name+sw+'</td>'
-      +'<td style="padding:7px 10px;text-align:right">'+Math.round(t.pensum*100)+'%</td>'
+      +'<td style="padding:7px 10px;text-align:right">'+(function(){var ch=(t.pensumChanges||[]).filter(function(c){return c.von&&c.pensum>0;}).sort(function(a,b){return a.von<b.von?-1:1;});if(!ch.length)return Math.round(t.pensum*100)+'%';var parts=[Math.round(t.pensum*100)+'%'];ch.forEach(function(c){parts.push(Math.round(c.pensum*100)+'%');});return parts.join('→');})()+'</td>'
       +'<td style="padding:7px 8px;text-align:right;color:#6b7280;font-size:11px">'+t.stichdatum+'</td>'
       +'<td style="padding:7px 8px;text-align:right">'+chf(t.umsatz,0)+'</td>'
       +'<td style="padding:7px 8px;text-align:right;color:#6b7280">'+c.garb+'</td>'
-      +'<td style="padding:7px 8px;text-align:right;min-width:120px"><div style="font-weight:700;color:'+col.c+'">'+chf(c.jahres,0)+'</div>'+m14minibar(c.jahres,t.pensum)+'</td>'
+      +'<td style="padding:7px 8px;text-align:right;min-width:120px"><div style="font-weight:700;color:'+col.c+'">'+chf(c.jahres,0)+'</div>'+m14minibar(c.jahres,c.pen)+'</td>'
       +'<td style="padding:7px 8px;text-align:center"><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:'+col.bg+';color:'+col.c+';font-weight:600">'+stlbl+'</span></td>'
       +'<td style="padding:7px 8px;text-align:right;font-weight:700;color:'+col.c+'">'+chf(c.bchf,0)+'</td>'
       +'<td style="padding:7px 8px;text-align:right;color:#6b7280">'+(c.delta!=null?chf(c.delta,0):'–')+'</td>'
@@ -5957,11 +5984,11 @@ function m14list(data){
 
 function m14detail(t,c){
   if(c.err)return '<div style="padding:28px"><button onclick="m14back()" style="padding:5px 12px;border:1.5px solid #d1d5db;border-radius:6px;background:#fff;font-size:12px;font-weight:600;cursor:pointer">← Zurück</button><p style="color:#ef4444;margin-top:12px">Fehler: '+c.err+'</p></div>';
-  var col=m14col(c.jahres,t.pensum);
+  var col=m14col(c.jahres,c.pen);
   var rw=function(lbl,val,note){return '<tr><td style="padding:5px 14px;color:#6b7280;font-size:12px;width:55%">'+lbl+'</td><td style="padding:5px 14px;text-align:right;font-size:12px;font-weight:600">'+val+'</td><td style="padding:5px 14px;font-size:11px;color:#9ca3af">'+(note||'')+'</td></tr>';};
   var sep=function(lbl){return '<tr style="background:#f9fafb"><td colspan="3" style="padding:5px 14px;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em">'+lbl+'</td></tr>';};
   var bonusRows=M14_BONUS.map(function(b,i){
-    var st=Math.round(b.thr*t.pensum),sb=Math.round(b.b*t.pensum),active=i===c.si,reached=c.jahres>=st;
+    var st=Math.round(b.thr*c.pen),sb=Math.round(b.b*c.pen),active=i===c.si,reached=c.jahres>=st;
     return '<tr style="background:'+(active?col.bg:'')+'"><td style="padding:4px 14px;font-size:11px;color:#6b7280">Stufe '+(i+1)+'</td>'
       +'<td style="padding:4px 14px;text-align:right;font-size:11px">'+chf(st,0)+'</td>'
       +'<td style="padding:4px 14px;text-align:right;font-size:11px;font-weight:'+(active?'700':'400')+';color:'+(reached?col.c:'#9ca3af')+'">'+chf(sb,0)+'</td>'
@@ -5979,13 +6006,11 @@ function m14detail(t,c){
     +'</div>'
     +staleW
     +'<div style="margin:12px 28px 12px;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">'
-    +'<div class="chart-card"><div class="chart-card-hdr">'+t.name+' <span class="cc-sub">'+Math.round(t.pensum*100)+'% Pensum · Stichtag '+t.stichdatum+'</span></div>'
+    +'<div class="chart-card"><div class="chart-card-hdr">'+t.name+' <span class="cc-sub">'+(function(){var ch=(t.pensumChanges||[]).filter(function(c){return c.von&&c.pensum>0;}).sort(function(a,b){return a.von<b.von?-1:1;});if(!ch.length)return Math.round(t.pensum*100)+'% Pensum';var parts=[Math.round(t.pensum*100)+'% ab '+c.start];ch.forEach(function(x){parts.push(Math.round(x.pensum*100)+'% ab '+x.von);});return parts.join(' · ');})()+' · Stichtag '+t.stichdatum+'</span></div>'
     +'<table style="width:100%;border-collapse:collapse">'+sep('Zeitraum')
     +rw('Periodestart',c.start,'Eintritt oder 1.1.2026 — was später ist')
-    +rw('Werktage (Mo–Fr)',c.wd,'')
-    +rw('Davon Feiertage',c.hol,'abgezogen')
     +sep('Anwesenheitsabzüge')
-    +rw('Netto × Pensum '+Math.round(t.pensum*100)+'%',c.net,'(Werktage − Feiertage) × Pensum')
+    +rw('Netto-Arbeitstage (pensum-gew.)',c.net,'Summe (Werktage − Feiertage) × Pensum je Periode')
     +rw('− Bezogene Ferientage',t.ferientage||0,'')
     +rw('− Weiterbildungstage',t.weiterbildungstage||0,'')
     +rw('− Unfalltage',t.unfalltage||0,'')
@@ -6000,7 +6025,7 @@ function m14detail(t,c){
     +rw('Umsatz pro Arbeitstag',chf(c.rate,2),'')
     +sep('Hochrechnung')
     +rw('× Referenztage (effektiv)',''+c.effRef,(c.zf?''+REFERENZTAGE_M14+' − '+c.zf+' Zusatzferientage':'261 Werktage − 8 Feiertage − 25 Ferien − 5 WBT'))
-    +rw('× Pensum',''+Math.round(t.pensum*100)+'%','')
+    +rw('× Pensum (Ø Jahrespensum)',''+(c.avgPen*100).toFixed(1)+'%',c.changes&&c.changes.length?'gewichtet über alle Pensum-Perioden':'')
     +(c.frOpt>0?rw('Restperiode-Modus',Math.round(c.rNet*10)/10+' Arbeitstage','geplante Restferientage: '+c.frOpt+' abgezogen'):'')
     +rw('= Hochgerechneter Jahresumsatz','<span style="font-size:16px;font-weight:800;color:'+col.c+'">'+chf(c.jahres,0)+'</span>','')
     +sep('Bonus')
@@ -6010,8 +6035,8 @@ function m14detail(t,c){
     +anteilRows
     +'</table></div></div>'
     +'<div style="margin:0 28px 12px" class="chart-card"><div class="chart-card-hdr">Fortschritt <span class="cc-sub">Markierungen = Bonusstufen (skaliert auf Pensum)</span></div>'
-    +m14bigbar(c.jahres,t.pensum)+'</div>'
-    +'<div style="margin:0 28px 20px" class="chart-card"><div class="chart-card-hdr">Bonustabelle <span class="cc-sub">skaliert auf '+Math.round(t.pensum*100)+'% Pensum · Auszahlung Januar 2027</span></div>'
+    +m14bigbar(c.jahres,c.pen)+'</div>'
+    +'<div style="margin:0 28px 20px" class="chart-card"><div class="chart-card-hdr">Bonustabelle <span class="cc-sub">skaliert auf '+Math.round(c.pen*100)+'% Pensum · Auszahlung Januar 2027</span></div>'
     +'<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f9fafb;border-bottom:1.5px solid #e5e7eb">'
     +'<th style="padding:6px 14px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase">Stufe</th>'
     +'<th style="padding:6px 14px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase">Jahresumsatz ab</th>'
@@ -6029,9 +6054,14 @@ function m14form(data){
     +'<div style="margin:14px 28px;max-width:580px" class="chart-card"><div class="chart-card-hdr">Daten erfassen</div><div style="padding:0 4px">'
     +fld('name','Name (Vorname Nachname)','text',t.name,'placeholder="z.B. Lara Dannenbauer"')
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
-    +fld('pensum','Pensum %','number',Math.round((t.pensum||1)*100),'min="10" max="100" step="5"')
+    +fld('pensum','Anfangspensum % (ab Eintrittsdatum)','number',Math.round((t.pensum||1)*100),'min="10" max="100" step="5"')
     +fld('stichdatum','Stichdatum *','date',t.stichdatum,'')
-    +'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    +'</div>'
+    +'<div style="margin-bottom:14px"><label style="display:block;font-size:11px;font-weight:600;color:#374151;margin-bottom:6px">Pensum-Änderungen <span style="font-size:10px;font-weight:400;color:#9ca3af">(optional – falls Pensum im Laufe des Jahres geändert hat)</span></label>'
+    +'<div id="m14-pensum-changes" style="margin-bottom:6px"></div>'
+    +'<button type="button" onclick="m14addPensumChange()" style="font-size:11px;padding:4px 12px;border:1.5px dashed #d1d5db;border-radius:5px;background:#fff;cursor:pointer;color:#6b7280">+ Pensum-Änderung hinzufügen</button>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
     +fld('eintrittsdatum','Eintrittsdatum (leer = 1.1.2026)','date',t.eintrittsdatum||'','')
     +fld('austrittsdatum','Austrittsdatum (optional)','date',t.austrittsdatum||'','')
     +'</div>'
@@ -6059,7 +6089,44 @@ function m14form(data){
     +'</div>';
 }
 
+var _m14PC=[];
+
+function m14renderPC(){
+  var el=document.getElementById('m14-pensum-changes');if(!el)return;
+  if(!_m14PC.length){el.innerHTML='<div style="font-size:11px;color:#9ca3af;padding:2px 0">Kein Pensum-Wechsel eingetragen</div>';return;}
+  el.innerHTML=_m14PC.map(function(c,i){
+    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'
+      +'<span style="font-size:11px;color:#374151;white-space:nowrap">Ab</span>'
+      +'<input type="date" value="'+(c.von||'')+'" oninput="m14pcSet('+i+',\'von\',this.value)" style="padding:4px 8px;border:1.5px solid #d1d5db;border-radius:5px;font-size:12px;width:150px">'
+      +'<input type="number" value="'+Math.round((c.pensum||1)*100)+'" min="10" max="100" step="5" oninput="m14pcSet('+i+',\'pensum\',this.value)" style="padding:4px 8px;border:1.5px solid #d1d5db;border-radius:5px;font-size:12px;width:70px">'
+      +'<span style="font-size:11px;color:#374151">%</span>'
+      +'<button type="button" onclick="m14pcRemove('+i+')" style="font-size:12px;padding:2px 8px;border:1.5px solid #fecaca;border-radius:5px;background:#fff;color:#ef4444;cursor:pointer;line-height:1">×</button>'
+      +'</div>';
+  }).join('');
+}
+
+function m14addPensumChange(){
+  _m14PC.push({von:'',pensum:1.0});
+  m14renderPC();m14preview();
+}
+
+function m14pcSet(i,key,val){
+  if(!_m14PC[i])return;
+  if(key==='pensum')_m14PC[i].pensum=Math.max(0.01,Math.min(1,(parseFloat(val)||100)/100));
+  else _m14PC[i][key]=val;
+  m14preview();
+}
+
+function m14pcRemove(i){
+  _m14PC.splice(i,1);
+  m14renderPC();m14preview();
+}
+
 function m14formInit(){
+  var data=m14ld();
+  var t=m14eid?data.find(function(r){return r.id===m14eid;})||{}:{};
+  _m14PC=(t.pensumChanges||[]).map(function(c){return{von:c.von,pensum:c.pensum};});
+  m14renderPC();
   ['name','pensum','stichdatum','eintrittsdatum','umsatz','ferientage','weiterbildungstage','unfalltage','zusatzferientage','ferientage_rest'].forEach(function(f){
     var el=document.getElementById('m14f-'+f);if(el)el.addEventListener('input',m14preview);
   });
@@ -6073,7 +6140,7 @@ function m14preview(){
     if(!t.name||!t.stichdatum||t.umsatz===''||t.umsatz==null){pr.innerHTML='';return;}
     var c=m14calc(t);
     if(c.err){pr.innerHTML='<span style="color:#ef4444">'+c.err+'</span>';return;}
-    var col=m14col(c.jahres,t.pensum);
+    var col=m14col(c.jahres,c.pen);
     pr.innerHTML='<strong>Vorschau:</strong> '+c.garb+' gearbeitete Tage → <strong style="color:'+col.c+'">'+chf(c.jahres,0)+' hochgerechnet</strong>'+(c.si>=0?' → Bonus '+chf(c.bchf,0):' → kein Bonus');
   }catch(e){pr.innerHTML='';}
 }
@@ -6095,6 +6162,7 @@ function m14formRead(){
     krankheitstage:parseInt(g('krankheitstage'))||0,
     zusatzferientage:parseInt(g('zusatzferientage'))||0,
     ferientage_rest:parseInt(g('ferientage_rest'))||0,
+    pensumChanges:_m14PC.filter(function(c){return c.von&&c.pensum>0;}).slice().sort(function(a,b){return a.von<b.von?-1:1;}),
   };
 }
 
