@@ -761,6 +761,7 @@ td{padding:8px 12px;vertical-align:middle}
       <div class="ht-tit">Gesamtumsatz</div>
       <div class="ht-dsc">Monatsumsatz nach Standort &amp; Kostenträger, Ziele, Vorjahresvergleich</div>
       <div id="ht2-kv" class="ht-nd">Keine Daten – Excel hochladen</div>
+      <div id="ht2-ytd" style="font-size:11.5px;color:#6b7280;margin-top:6px;line-height:1.35"></div>
     </div>
     <div class="ht ht-bl" onclick="enterMod('m4','🏋️ MTT')">
       <div class="ht-ico">🏋️</div>
@@ -1680,6 +1681,36 @@ function updateHomeTiles() {
     if (!val) { el.className='ht-nd'; el.textContent=''; return; }
     el.className=(t.id==='ht8-kv')?'ht-kv-lite':'ht-kv'; el.textContent=val;
   });
+  // M2: YTD-Vergleich aktuelles Jahr vs. Vorjahr (Jan–[letzter Monat])
+  const ht2ytd = document.getElementById('ht2-ytd');
+  if (ht2ytd) {
+    const m2all = loadModData('m2').filter(r => r.total > 0);
+    const ht2ytdEl = ht2ytd;
+    if (m2all.length) {
+      const months = [...new Set(m2all.map(r => r.month))].sort();
+      const lastM = months[months.length - 1];
+      const [lastY, lastMo] = lastM.split('-');
+      const prevY = String(parseInt(lastY) - 1);
+      const moNames = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+      const toLbl = moNames[parseInt(lastMo) - 1];
+      const ytdCur  = m2all.filter(r => r.month >= lastY+'-01' && r.month <= lastM).reduce((s,r)=>s+(r.total||0),0);
+      const ytdPrev = m2all.filter(r => r.month >= prevY+'-01' && r.month <= prevY+'-'+lastMo).reduce((s,r)=>s+(r.total||0),0);
+      if (ytdPrev > 0) {
+        const pct = (ytdCur - ytdPrev) / ytdPrev * 100;
+        const sign = pct >= 0 ? '+' : '';
+        const col  = pct >= 0 ? '#16a34a' : '#ef4444';
+        const arr  = pct >= 0 ? '↑' : '↓';
+        ht2ytdEl.innerHTML = 'Jan–'+toLbl+' ’26: '+chf(ytdCur,0)
+          +' <span style="color:'+col+';font-weight:700">'+sign+pct.toFixed(1)+'% '+arr+'</span>'
+          +' vs. ’25';
+      } else if (ytdCur > 0) {
+        ht2ytdEl.textContent = 'Jan–'+toLbl+' ’26: '+chf(ytdCur,0);
+      } else {
+        ht2ytdEl.textContent = '';
+      }
+    } else { ht2ytdEl.textContent = ''; }
+  }
+
   const periodEl = document.getElementById('ht8-period');
   if (periodEl) periodEl.textContent = M8_ZEITRAUM;
   if (activeModKey === 'm8') renderM8();
