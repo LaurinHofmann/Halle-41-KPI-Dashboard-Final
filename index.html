@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260805164715">
+<meta name="app-build" content="20260805165522">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -6023,7 +6023,7 @@ function m14detail(t,c){
     +'<div class="chart-card"><div class="chart-card-hdr">'+t.name+' <span class="cc-sub">'+(function(){var ch=(t.pensumChanges||[]).filter(function(c){return c.von&&c.pensum>0;}).sort(function(a,b){return a.von<b.von?-1:1;});if(!ch.length)return Math.round(t.pensum*100)+'% Pensum';var parts=[Math.round(t.pensum*100)+'% ab '+c.start];ch.forEach(function(x){parts.push(Math.round(x.pensum*100)+'% ab '+x.von);});return parts.join(' · ');})()+' · Stichtag '+t.stichdatum+'</span></div>'
     +'<table style="width:100%;border-collapse:collapse">'+sep('Phase 1 · Bis Stichdatum')
     +rw('Periodestart',c.start,'Eintrittsdatum oder 1.1.2026')
-    +rw('Brutto-Arbeitstage × Pensum',c.net,'(Werktage − Feiertage) × Pensum')
+    +rw('Netto-Arbeitstage × Pensum',c.net,'Werktage − Feiertage (bereits abgezogen) × Pensum')
     +rw('− Bezogene Ferientage',t.ferientage||0,'')
     +rw('− Bezogene WBT-Tage',t.weiterbildungstage||0,'')
     +rw('− Unfalltage',t.unfalltage||0,'')
@@ -6031,7 +6031,7 @@ function m14detail(t,c){
     +rw('= Gearbeitete Tage','<strong style="font-size:14px">'+c.garb+'</strong>','')
     +rw('Tagessatz (Umsatz ÷ Tage)','<strong>'+chf(c.rate,2)+'</strong>','')
     +sep('Phase 2 · Ab Stichdatum+1 bis 31.12.')
-    +rw('Verbleibende Brutto-Tage × Pensum',c.rGross,'(Werktage − Feiertage) × '+Math.round(c.pen*100)+'%')
+    +rw('Verbleibende Netto-Tage × Pensum',c.rGross,'Werktage − Feiertage (bereits abgezogen) × '+Math.round(c.pen*100)+'%')
     +rw('− Geplante Restferientage',t.ferientage_rest||0,'')
     +rw('− Geplante Rest-WBT',c.wbtRest,'')
     +rw('= Verbleibende Arbeitstage','<strong style="font-size:14px">'+c.rNet+'</strong>','')
