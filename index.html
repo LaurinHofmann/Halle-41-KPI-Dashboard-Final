@@ -1535,7 +1535,7 @@ function spark(values) {
 /* ===================== STATE ===================== */
 let MASS_MONTHS=new Set(JSON.parse(localStorage.getItem('h41_mass_months')||'["2024-12","2025-03","2025-09","2025-12"]'));
 let ARBEITSTAGE=JSON.parse(localStorage.getItem('h41_arbeitstage')||'{"2024-07":23,"2024-08":21,"2024-09":21,"2024-10":23,"2024-11":21,"2024-12":20,"2025-01":21,"2025-02":20,"2025-03":21,"2025-04":20,"2025-05":21,"2025-06":20,"2025-07":23,"2025-08":20,"2025-09":22,"2025-10":23,"2025-11":20,"2025-12":21,"2026-01":20,"2026-02":20,"2026-03":22,"2026-04":20,"2026-05":18,"2026-06":21,"2026-07":23}');
-let m2YearFilter='current', m2AbsView=false, gM10Month='all', gM10Sort='score', gM10SortDir=-1;
+let m2YearFilter='current', m2AbsView=false, gM10Month='all', gM10Sort='score', gM10SortDir=-1, gM10KpiSort='score', gM10KpiSortDir=-1;
 let loc='all', gLoc='all', srtCol='change', srtDir=1, selIdx=null, selVisitId=null, chart=null, currentView='home';
 let editingVisitId = null;
 let activeModKey = null; // current new module key (m2..m8)
@@ -3497,6 +3497,10 @@ function setM10Sort(col) {
   if (gM10Sort===col) gM10SortDir*=-1; else { gM10Sort=col; gM10SortDir=-1; }
   renderM10();
 }
+function setM10KpiSort(col) {
+  if (gM10KpiSort===col) gM10KpiSortDir*=-1; else { gM10KpiSort=col; gM10KpiSortDir=-1; }
+  renderM10();
+}
 
 function setM10Month(m, btn) {
   gM10Month = m;
@@ -3674,7 +3678,8 @@ function renderM10() {
     r.sMtt=normK(r.mttRevNorm,mttArr);
     r.score=Math.round(r.sRev*0.25+r.sUtil*0.25+r.sRpt*0.20+r.sAbs*0.20+r.sMtt*0.10);
   });
-  kpiRows.sort(function(a,b){return b.score-a.score;});
+  var kpiSortFns={score:function(a,b){return a.score-b.score;},therapyRev:function(a,b){return a.therapyRevNorm-b.therapyRevNorm;},mttRev:function(a,b){return a.mttRevNorm-b.mttRevNorm;},gesamt:function(a,b){return a.revNorm-b.revNorm;}};
+  kpiRows.sort(function(a,b){return(kpiSortFns[gM10KpiSort]||kpiSortFns.score)(a,b)*gM10KpiSortDir;});
 
   // KPI-Leiste aktualisieren
   if(kpiRows.length){
@@ -3761,9 +3766,9 @@ function renderM10() {
         +'<th style="padding:7px 10px;text-align:left;font-weight:700">Therapeut/in</th>'
         +'<th style="padding:7px 10px;font-weight:700">Standort</th>'
         +'<th style="padding:7px 10px;text-align:center;font-weight:700" title="Gewichteter Score: 25% Umsatz + 25% Auslastung + 20% CHF/Termin + 20% Absagequote (invertiert) + 10% MTT Check-ins. Normiert auf 0–100 relativ zur Gruppe.">Score ⓘ</th>'
-        +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="Therapie + Produkte, geteilt durch Frontleistung — fairer Vergleich Voll-/Teilzeit">Therapie inkl. Prod. (FL-ber.) ⓘ</th>'
-        +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="MTT-Umsatz, geteilt durch Frontleistung">Umsatz MTT (FL-ber.) ⓘ</th>'
-        +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="Gesamtumsatz (Therapie + MTT), geteilt durch Frontleistung">Gesamtumsatz (FL-ber.) ⓘ</th>'
+        +'<th style="padding:7px 10px;text-align:right;font-weight:700;cursor:pointer;user-select:none" title="Therapie + Produkte, geteilt durch Frontleistung — klicken zum Sortieren" onclick="setM10KpiSort(\'therapyRev\')">Therapie inkl. Prod. (FL-ber.) '+(gM10KpiSort==='therapyRev'?gM10KpiSortDir<0?'↓':'↑':'')+'</th>'
+        +'<th style="padding:7px 10px;text-align:right;font-weight:700;cursor:pointer;user-select:none" title="MTT-Umsatz, geteilt durch Frontleistung — klicken zum Sortieren" onclick="setM10KpiSort(\'mttRev\')">Umsatz MTT (FL-ber.) '+(gM10KpiSort==='mttRev'?gM10KpiSortDir<0?'↓':'↑':'')+'</th>'
+        +'<th style="padding:7px 10px;text-align:right;font-weight:700;cursor:pointer;user-select:none" title="Gesamtumsatz (Therapie + MTT), geteilt durch Frontleistung — klicken zum Sortieren" onclick="setM10KpiSort(\'gesamt\')">Gesamtumsatz (FL-ber.) '+(gM10KpiSort==='gesamt'?gM10KpiSortDir<0?'↓':'↑':'')+'</th>'
         +'<th style="padding:7px 10px;text-align:center;font-weight:700" title="Frontleistung: Pensum des Therapeuten (1.0 = 100%)">FL</th>'
         +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="Aus Auslastungsanalyse · ✦ = keine Daten">Auslastung</th>'
         +'<th style="padding:7px 10px;text-align:right;font-weight:700">CHF/Termin</th>'
