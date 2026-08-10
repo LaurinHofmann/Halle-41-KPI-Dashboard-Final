@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260810110438">
+<meta name="app-build" content="20260805164715">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -1022,7 +1022,7 @@ td{padding:8px 12px;vertical-align:middle}
   <div id="m10-kpi-scorecard"></div>
   <div style="margin-top:20px;padding:16px;background:#f9fafb;border-radius:10px;border:1.5px dashed #d1d5db">
     <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:6px">📤 Daten aktualisieren</div>
-    <p style="font-size:12px;color:#6b7280;margin:0 0 10px"><strong>Export in Cenplex:</strong> «Therapeuten Scorecard» · Spalten: <strong>Vorname, Nachname, Standort, Anzahl MTT-Termine, Summe Termine (Physio/EMR/Ergo/Pauschal/Privat), Umsatz gesamt</strong> · Zeitraum pro Monat filtern</p>
+    <p style="font-size:12px;color:#6b7280;margin:0 0 10px"><strong>Export in Cenplex:</strong> «Therapeuten Scorecard» · Spalten: <strong>Vorname, Nachname, Standort, Anzahl behandelt, Umsatz Therapie, Umsatz Produkte, Umsatz MTT, Umsatz gesamt</strong> · Zeitraum pro Monat filtern</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
       <div><label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Monat</label><input type="month" id="m10-upload-month" style="border:1.5px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit"></div>
       <div><label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px">Excel-Datei</label><input type="file" id="m10-excel-input" accept=".xlsx,.xls" style="font-size:13px"></div>
@@ -2022,30 +2022,32 @@ const VO_EARLY_INIT=[
 ];
 
 const T_SCORECARD_INIT=[
-  {therapist:'David Deplazes',location:'Zuerich',month:'2026-01',termine:190,revenue:14818.01,mtt:0,mttC:65},
+  {therapist:'David Deplazes',location:'Zuerich',month:'2026-01',termine:81,revenue:14831.81,therapyRev:12643.26,mttRev:2188.55},
   {therapist:'David Deplazes',location:'Zuerich',month:'2026-02',termine:194,revenue:14116.49,mtt:0,mttC:35},
   {therapist:'David Deplazes',location:'Zuerich',month:'2026-03',termine:224,revenue:16719.77,mtt:0,mttC:33},
   {therapist:'David Deplazes',location:'Zuerich',month:'2026-04',termine:172,revenue:15128.95,mtt:0,mttC:86},
   {therapist:'David Deplazes',location:'Zuerich',month:'2026-05',termine:185,revenue:16058.68,mtt:0,mttC:81},
-  {therapist:'Lara Dannenbauer',location:'Zuerich',month:'2026-01',termine:190,revenue:16874.07,mtt:0,mttC:101},
+  {therapist:'Lara Dannenbauer',location:'Zuerich',month:'2026-01',termine:74,revenue:16816.35,therapyRev:13195.53,mttRev:3620.82},
   {therapist:'Lara Dannenbauer',location:'Zuerich',month:'2026-02',termine:202,revenue:17555.05,mtt:0,mttC:72},
   {therapist:'Lara Dannenbauer',location:'Zuerich',month:'2026-03',termine:229,revenue:17640.57,mtt:0,mttC:47},
   {therapist:'Lara Dannenbauer',location:'Zuerich',month:'2026-04',termine:183,revenue:14077.32,mtt:0,mttC:34},
   {therapist:'Lara Dannenbauer',location:'Zuerich',month:'2026-05',termine:171,revenue:14416.82,mtt:0,mttC:61},
-  {therapist:'Sophia Gallmetzer',location:'Zuerich',month:'2026-01',termine:141,revenue:11334.49,mtt:0,mttC:43},
+  {therapist:'Sophia Gallmetzer',location:'Zuerich',month:'2026-01',termine:57,revenue:11310.07,therapyRev:9875.58,mttRev:1434.49},
   {therapist:'Sophia Gallmetzer',location:'Zuerich',month:'2026-02',termine:161,revenue:15304.83,mtt:0,mttC:90},
   {therapist:'Sophia Gallmetzer',location:'Zuerich',month:'2026-03',termine:167,revenue:17171.91,mtt:0,mttC:168},
   {therapist:'Sophia Gallmetzer',location:'Zuerich',month:'2026-04',termine:191,revenue:18869.14,mtt:0,mttC:168},
   {therapist:'Sophia Gallmetzer',location:'Zuerich',month:'2026-05',termine:212,revenue:19737.47,mtt:0,mttC:148},
+  {therapist:'Nadja Lösch',location:'Zuerich',month:'2026-01',termine:12,revenue:3253.78,therapyRev:106.56,mttRev:3147.22},
   {therapist:'Nadja Lösch',location:'Zuerich',month:'2026-05',termine:111,revenue:9188.63,mtt:0,mttC:12},
+  {therapist:'Maya Keller',location:'Zuerich',month:'2026-01',termine:2,revenue:561.66,therapyRev:0,mttRev:561.66},
   {therapist:'Maya Keller',location:'Zuerich',month:'2026-04',termine:52,revenue:3776.77,mtt:0,mttC:17},
   {therapist:'Maya Keller',location:'Zuerich',month:'2026-05',termine:65,revenue:4971.87,mtt:0,mttC:31},
-  {therapist:'Tomas Ciuzelis',location:'Zuerich',month:'2026-01',termine:146,revenue:11610.27,mtt:0,mttC:80},
+  {therapist:'Tomas Ciuzelis',location:'Zuerich',month:'2026-01',termine:70,revenue:11659.11,therapyRev:8983.27,mttRev:2675.84},
   {therapist:'Tomas Ciuzelis',location:'Zuerich',month:'2026-02',termine:231,revenue:17385.09,mtt:0,mttC:70},
   {therapist:'Tomas Ciuzelis',location:'Zuerich',month:'2026-03',termine:217,revenue:17152.50,mtt:0,mttC:80},
   {therapist:'Tomas Ciuzelis',location:'Zuerich',month:'2026-04',termine:222,revenue:17750.28,mtt:0,mttC:52},
   {therapist:'Tomas Ciuzelis',location:'Zuerich',month:'2026-05',termine:96,revenue:8790.98,mtt:0,mttC:56},
-  {therapist:'Cléo Mathys',location:'Zuerich',month:'2026-01',termine:93,revenue:7846.11,mtt:0,mttC:20},
+  {therapist:'Cléo Mathys',location:'Zuerich',month:'2026-01',termine:42,revenue:7792.83,therapyRev:6847.48,mttRev:945.35},
   {therapist:'Cléo Mathys',location:'Zuerich',month:'2026-02',termine:128,revenue:10097.20,mtt:0,mttC:35},
   {therapist:'Cléo Mathys',location:'Zuerich',month:'2026-03',termine:116,revenue:9548.91,mtt:0,mttC:27},
   {therapist:'Cléo Mathys',location:'Zuerich',month:'2026-04',termine:143,revenue:11761.00,mtt:0,mttC:40},
@@ -2054,21 +2056,22 @@ const T_SCORECARD_INIT=[
   {therapist:'Noah Aldaro',location:'Zuerich',month:'2026-03',termine:153,revenue:11559.20,mtt:0,mttC:9},
   {therapist:'Noah Aldaro',location:'Zuerich',month:'2026-04',termine:157,revenue:11677.07,mtt:0,mttC:15},
   {therapist:'Noah Aldaro',location:'Zuerich',month:'2026-05',termine:117,revenue:11043.55,mtt:0,mttC:21},
-  {therapist:'Antonio Lozic',location:'Kloten',month:'2026-01',termine:184,revenue:14110.71,mtt:0,mttC:88},
+  {therapist:'Antonio Lozic',location:'Kloten',month:'2026-01',termine:61,revenue:13915.35,therapyRev:11625.05,mttRev:2290.30},
   {therapist:'Antonio Lozic',location:'Kloten',month:'2026-02',termine:160,revenue:14379.24,mtt:0,mttC:72},
   {therapist:'Antonio Lozic',location:'Kloten',month:'2026-03',termine:163,revenue:14056.22,mtt:0,mttC:75},
   {therapist:'Antonio Lozic',location:'Kloten',month:'2026-04',termine:201,revenue:17684.22,mtt:0,mttC:65},
   {therapist:'Antonio Lozic',location:'Kloten',month:'2026-05',termine:117,revenue:11097.28,mtt:0,mttC:49},
-  {therapist:'Damir Bakarcic',location:'Kloten',month:'2026-01',termine:116,revenue:10527.57,mtt:0,mttC:87},
+  {therapist:'Damir Bakarcic',location:'Kloten',month:'2026-01',termine:52,revenue:10527.57,therapyRev:7946.08,mttRev:2581.49},
   {therapist:'Damir Bakarcic',location:'Kloten',month:'2026-02',termine:72,revenue:6655.30,mtt:0,mttC:56},
   {therapist:'Damir Bakarcic',location:'Kloten',month:'2026-03',termine:137,revenue:11359.53,mtt:0,mttC:45},
   {therapist:'Damir Bakarcic',location:'Kloten',month:'2026-04',termine:109,revenue:9746.55,mtt:0,mttC:24},
   {therapist:'Damir Bakarcic',location:'Kloten',month:'2026-05',termine:98,revenue:8811.67,mtt:0,mttC:42},
-  {therapist:'Philippe Dobler',location:'Kloten',month:'2026-01',termine:138,revenue:12009.16,mtt:0,mttC:76},
+  {therapist:'Philippe Dobler',location:'Kloten',month:'2026-01',termine:55,revenue:12009.16,therapyRev:9503.89,mttRev:2505.27},
   {therapist:'Philippe Dobler',location:'Kloten',month:'2026-02',termine:165,revenue:12269.14,mtt:0,mttC:34},
   {therapist:'Philippe Dobler',location:'Kloten',month:'2026-03',termine:192,revenue:15116.97,mtt:0,mttC:40},
   {therapist:'Philippe Dobler',location:'Kloten',month:'2026-04',termine:99,revenue:7959.00,mtt:0,mttC:41},
   {therapist:'Philippe Dobler',location:'Kloten',month:'2026-05',termine:128,revenue:9798.68,mtt:0,mttC:35},
+  {therapist:'Andrei Sokolov',location:'Kloten',month:'2026-01',termine:11,revenue:3000.70,therapyRev:0,mttRev:3000.70},
   {therapist:'Andrei Sokolov',location:'Kloten',month:'2026-03',termine:104,revenue:8345.56,mtt:0,mttC:22},
   {therapist:'Andrei Sokolov',location:'Kloten',month:'2026-04',termine:69,revenue:5484.18,mtt:0,mttC:22},
   {therapist:'Andrei Sokolov',location:'Kloten',month:'2026-05',termine:52,revenue:5184.95,mtt:0,mttC:41},
@@ -2077,22 +2080,22 @@ const T_SCORECARD_INIT=[
   {therapist:'Robin Post',location:'Kloten',month:'2026-03',termine:195,revenue:16055.31,mtt:0,mttC:89},
   {therapist:'Robin Post',location:'Kloten',month:'2026-04',termine:136,revenue:12016.87,mtt:0,mttC:76},
   {therapist:'Robin Post',location:'Kloten',month:'2026-05',termine:140,revenue:11880.19,mtt:0,mttC:70},
-  {therapist:'Anna Jurovicova',location:'Kloten',month:'2026-01',termine:131,revenue:13163.85,mtt:0,mttC:126},
+  {therapist:'Anna Jurovicova',location:'Kloten',month:'2026-01',termine:53,revenue:13163.85,therapyRev:9293.28,mttRev:3870.57},
   {therapist:'Anna Jurovicova',location:'Kloten',month:'2026-02',termine:96,revenue:9150.62,mtt:0,mttC:54},
   {therapist:'Anna Jurovicova',location:'Kloten',month:'2026-03',termine:169,revenue:14701.05,mtt:0,mttC:37},
   {therapist:'Anna Jurovicova',location:'Kloten',month:'2026-04',termine:140,revenue:12935.36,mtt:0,mttC:58},
   {therapist:'Anna Jurovicova',location:'Kloten',month:'2026-05',termine:148,revenue:12923.73,mtt:0,mttC:63},
-  {therapist:'Dominique Goncalves',location:'Kloten',month:'2026-01',termine:99,revenue:7656.63,mtt:0,mttC:38},
+  {therapist:'Dominique Goncalves',location:'Kloten',month:'2026-01',termine:37,revenue:7656.63,therapyRev:6512.22,mttRev:1144.41},
   {therapist:'Dominique Goncalves',location:'Kloten',month:'2026-02',termine:122,revenue:9122.12,mtt:0,mttC:17},
   {therapist:'Dominique Goncalves',location:'Kloten',month:'2026-03',termine:109,revenue:8378.61,mtt:0,mttC:37},
   {therapist:'Dominique Goncalves',location:'Kloten',month:'2026-04',termine:128,revenue:10206.67,mtt:0,mttC:34},
   {therapist:'Dominique Goncalves',location:'Kloten',month:'2026-05',termine:60,revenue:6037.15,mtt:0,mttC:44},
-  {therapist:'Florian Mader',location:'Kloten',month:'2026-01',termine:181,revenue:16394.74,mtt:0,mttC:106},
+  {therapist:'Florian Mader',location:'Kloten',month:'2026-01',termine:62,revenue:16394.74,therapyRev:13373.32,mttRev:3021.42},
   {therapist:'Florian Mader',location:'Kloten',month:'2026-02',termine:121,revenue:12453.65,mtt:0,mttC:120},
   {therapist:'Florian Mader',location:'Kloten',month:'2026-03',termine:151,revenue:14980.80,mtt:0,mttC:125},
   {therapist:'Florian Mader',location:'Kloten',month:'2026-04',termine:181,revenue:16663.22,mtt:0,mttC:96},
   {therapist:'Florian Mader',location:'Kloten',month:'2026-05',termine:109,revenue:11339.10,mtt:0,mttC:83},
-  {therapist:'Gabriela Wimberska',location:'Kloten',month:'2026-01',termine:162,revenue:12111.61,mtt:0,mttC:26},
+  {therapist:'Gabriela Wimberska',location:'Kloten',month:'2026-01',termine:50,revenue:11776.21,therapyRev:11117.24,mttRev:658.97},
   {therapist:'Gabriela Wimberska',location:'Kloten',month:'2026-02',termine:142,revenue:12735.13,mtt:0,mttC:37},
   {therapist:'Gabriela Wimberska',location:'Kloten',month:'2026-03',termine:155,revenue:12756.85,mtt:0,mttC:24},
   {therapist:'Gabriela Wimberska',location:'Kloten',month:'2026-04',termine:151,revenue:13397.32,mtt:0,mttC:70},
@@ -2170,7 +2173,18 @@ function loadModData(key) {
   if (key === 'm10') {
     const s=localStorage.getItem('h41_m10_data');
     if(!s) return JSON.parse(JSON.stringify(T_SCORECARD_INIT));
-    const d=JSON.parse(s); return d.length?d:JSON.parse(JSON.stringify(T_SCORECARD_INIT));
+    const d=JSON.parse(s);
+    if(!d.length) return JSON.parse(JSON.stringify(T_SCORECARD_INIT));
+    // Migration: Wenn Januar-2026-Einträge noch kein therapyRev haben → durch Seed-Daten ersetzen
+    const needsMigration=d.some(r=>r.month==='2026-01'&&r.therapyRev==null);
+    if(needsMigration){
+      const jan=d.filter(r=>r.month!=='2026-01');
+      const janSeed=T_SCORECARD_INIT.filter(r=>r.month==='2026-01');
+      const merged=[...jan,...janSeed];
+      localStorage.setItem('h41_m10_data',JSON.stringify(merged));
+      return merged;
+    }
+    return d;
   }
   if (key === 'm11') {
     if (!stored) return [{"name":"Robin","total":1514,"cancelled":195},{"name":"Florian","total":1454,"cancelled":136},{"name":"Sophia","total":1670,"cancelled":142},{"name":"David","total":1497,"cancelled":179},{"name":"Tomas","total":1490,"cancelled":188},{"name":"Gabriela","total":1171,"cancelled":168}];
@@ -3586,7 +3600,9 @@ function renderM10() {
     const rows=raw.filter(r=>r.therapist===t);
     const loc=rows[0].location;
     const totalRev=rows.reduce((s,r)=>s+r.revenue,0);
-    const totalMTT=rows.reduce((s,r)=>s+(r.mtt||0),0);
+    const totalTherapyRev=rows.reduce((s,r)=>s+(r.therapyRev!=null?r.therapyRev:0),0);
+    const totalMttRev=rows.reduce((s,r)=>s+(r.mttRev!=null?r.mttRev:0),0);
+    const hasRevBreakdown=rows.some(r=>r.therapyRev!=null);
     const totalTerm=rows.reduce((s,r)=>s+r.termine,0);
     const totalMttC=rows.reduce((s,r)=>s+(r.mttC||0),0);
     const revPerTerm=totalTerm>0?totalRev/totalTerm:0;
@@ -3604,7 +3620,7 @@ function renderM10() {
     const lostRevTotal=allRevPerTerm*(eRow.d1*Math.max(voRow.avg_termine-1,0)+eRow.d2*Math.max(voRow.avg_termine-2,0)+eRow.d3*Math.max(voRow.avg_termine-3,0));
     const lostRev=Math.round(lostRevTotal/25); // pro Monat (25 Monate: Jun 2024–Jun 2026)
     var util = getUtilPct(t, loc);
-    return {t,loc,totalRev,totalTerm,totalMttC,revPerTerm,revPerVO,monthRev,trend,avgT:voRow.avg_termine,vos:voRow.vos,earlyRate,lostRev,months:rows.length,util};
+    return {t,loc,totalRev,totalTherapyRev,totalMttRev,hasRevBreakdown,totalTerm,totalMttC,revPerTerm,revPerVO,monthRev,trend,avgT:voRow.avg_termine,vos:voRow.vos,earlyRate,lostRev,months:rows.length,util};
   });
 
   const norm=(val,arr)=>{const v=arr.filter(x=>x>0);const mn=Math.min(...v),mx=Math.max(...v);return mx===mn?50:Math.round((val-mn)/(mx-mn)*100);};
@@ -3639,23 +3655,23 @@ function renderM10() {
     var util=getUtilForMonth(r.t,r.loc,gM10Month);
     var absRate=getAbsRate(r.t,r.loc,gM10Month);
     var revNorm=fl>0?r.totalRev/fl:r.totalRev;
-    var mttC=r.totalMttC||0;
-    var mttNorm=fl>0?mttC/fl:mttC;
+    var therapyRevNorm=fl>0?r.totalTherapyRev/fl:r.totalTherapyRev;
+    var mttRevNorm=fl>0?r.totalMttRev/fl:r.totalMttRev;
     var sRev=0,sUtil=50,sRpt=0,sAbs=50,sMtt=50;
-    return {name:r.t,loc:r.loc,rev:r.totalRev,revNorm:revNorm,fl:fl,rpt:r.revPerTerm,util:util,absRate:absRate,mttC:mttC,mttNorm:mttNorm,sRev:sRev,sUtil:sUtil,sRpt:sRpt,sAbs:sAbs,sMtt:sMtt,score:0};
+    return {name:r.t,loc:r.loc,rev:r.totalRev,revNorm:revNorm,therapyRev:r.totalTherapyRev,therapyRevNorm:therapyRevNorm,mttRev:r.totalMttRev,mttRevNorm:mttRevNorm,hasRevBreakdown:r.hasRevBreakdown,fl:fl,rpt:r.revPerTerm,util:util,absRate:absRate,sRev:sRev,sUtil:sUtil,sRpt:sRpt,sAbs:sAbs,sMtt:sMtt,score:0};
   });
 
   var revArr=kpiRows.map(function(r){return r.revNorm;}),rptArr=kpiRows.map(function(r){return r.rpt;});
   var utilArr=kpiRows.map(function(r){return r.util;}).filter(function(v){return v!=null;});
   var absArr=kpiRows.map(function(r){return r.absRate;}).filter(function(v){return v!=null;});
-  var mttArr=kpiRows.map(function(r){return r.mttNorm;});
+  var mttArr=kpiRows.map(function(r){return r.mttRevNorm;});
 
   kpiRows.forEach(function(r){
     r.sRev=normK(r.revNorm,revArr);
     r.sRpt=normK(r.rpt,rptArr);
     r.sUtil=utilArr.length&&r.util!=null?normK(r.util,utilArr):50;
     r.sAbs=absArr.length&&r.absRate!=null?100-normK(r.absRate,absArr):50;
-    r.sMtt=normK(r.mttNorm,mttArr);
+    r.sMtt=normK(r.mttRevNorm,mttArr);
     r.score=Math.round(r.sRev*0.25+r.sUtil*0.25+r.sRpt*0.20+r.sAbs*0.20+r.sMtt*0.10);
   });
   kpiRows.sort(function(a,b){return b.score-a.score;});
@@ -3717,14 +3733,14 @@ function renderM10() {
       +'<td style="padding:7px 10px;font-weight:600;color:#9ca3af">'+(i+1)+'</td>'
       +'<td style="padding:7px 10px;font-weight:600">'+r.name+'</td>'
       +'<td style="padding:7px 10px"><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:'+lb+';color:'+lc+';font-weight:600">'+(r.loc==='Zuerich'?'ZH':'KL')+'</span></td>'
-      +'<td style="padding:7px 10px;text-align:center"><span style="font-size:14px;font-weight:800;color:'+sc+';background:'+scBg+';padding:2px 9px;border-radius:6px;cursor:help" data-srev="'+r.sRev+'" data-sutil="'+r.sUtil+'" data-srpt="'+r.sRpt+'" data-sabs="'+r.sAbs+'" data-smtt="'+r.sMtt+'" data-rev="'+Math.round(r.revNorm)+'" data-util="'+(r.util!=null?r.util.toFixed(1):'')+'" data-rpt="'+r.rpt.toFixed(1)+'" data-abs="'+(r.absRate!=null?r.absRate.toFixed(1):'')+'" data-mttc="'+r.mttC+'" data-mttnorm="'+Math.round(r.mttNorm)+'" data-score="'+r.score+'" onmouseenter="showScoreTip(event,this)" onmouseleave="hideScoreTip()" onmousemove="movScoreTip(event)">'+r.score+'</span></td>'
+      +'<td style="padding:7px 10px;text-align:center"><span style="font-size:14px;font-weight:800;color:'+sc+';background:'+scBg+';padding:2px 9px;border-radius:6px;cursor:help" data-srev="'+r.sRev+'" data-sutil="'+r.sUtil+'" data-srpt="'+r.sRpt+'" data-sabs="'+r.sAbs+'" data-smtt="'+r.sMtt+'" data-rev="'+Math.round(r.revNorm)+'" data-util="'+(r.util!=null?r.util.toFixed(1):'')+'" data-rpt="'+r.rpt.toFixed(1)+'" data-abs="'+(r.absRate!=null?r.absRate.toFixed(1):'')+'" data-mttrev="'+Math.round(r.mttRev)+'" data-mttrevnorm="'+Math.round(r.mttRevNorm)+'" data-score="'+r.score+'" onmouseenter="showScoreTip(event,this)" onmouseleave="hideScoreTip()" onmousemove="movScoreTip(event)">'+r.score+'</span></td>'
+      +'<td style="padding:7px 10px;text-align:right;font-weight:600">'+(r.therapyRevNorm>0?chf(r.therapyRevNorm,0):'<span style=\'color:#9ca3af\'>–</span>')+'</td>'
+      +'<td style="padding:7px 10px;text-align:right;font-weight:600">'+(r.mttRevNorm>0?chf(r.mttRevNorm,0):'<span style=\'color:#9ca3af\'>–</span>')+'</td>'
       +'<td style="padding:7px 10px;text-align:right;font-weight:600">'+chf(r.revNorm,0)+'</td>'
       +'<td style="padding:7px 10px;text-align:center;color:#6b7280;font-size:12px">'+Math.round(r.fl*100)+'%</td>'
-      +'<td style="padding:7px 10px;text-align:right;color:#9ca3af">'+chf(r.rev,0)+'</td>'
       +'<td style="padding:7px 10px;text-align:right;font-weight:600;color:'+uC+'">'+(r.util!=null?r.util.toFixed(1)+'%':'✦')+'</td>'
       +'<td style="padding:7px 10px;text-align:right">'+chf(r.rpt,0)+'</td>'
       +'<td style="padding:7px 10px;text-align:right;font-weight:600;color:'+aC+'">'+(r.absRate!=null?r.absRate.toFixed(1)+'%':'–')+'</td>'
-      +'<td style="padding:7px 10px;text-align:right;font-weight:600">'+r.mttC+'<span style="color:#9ca3af;font-size:11px"> → '+Math.round(r.mttNorm)+'</span></td>'
     +'</tr>';
   });
 
@@ -3732,9 +3748,9 @@ function renderM10() {
     +'<div class="chart-card-hdr">KPI-Scorecard <span class="cc-sub">Gewichteter Score 0–100 · '+moLblSel+'</span></div>'
     +'<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 14px;font-size:12px;color:#0c4a6e;margin-bottom:14px;line-height:1.7">'
       +'<strong>Was zeigt die KPI-Scorecard?</strong> Performance-Übersicht pro Therapeut basierend auf 4 Kennzahlen aus den anderen Modulen — automatisch aktualisiert.<br>'
-      +'<strong>Score-Formel:</strong> Umsatz <strong>25%</strong> · Auslastung <strong>25%</strong> · CHF/Termin <strong>20%</strong> · Absagequote <strong>20%</strong> (invertiert – tiefer = besser) · MTT Check-ins <strong>10%</strong><br>'
+      +'<strong>Score-Formel:</strong> Umsatz <strong>25%</strong> · Auslastung <strong>25%</strong> · CHF/Termin <strong>20%</strong> · Absagequote <strong>20%</strong> (invertiert – tiefer = besser) · MTT-Umsatz <strong>10%</strong><br>'
       +'<strong>Umsatz (Scoring):</strong> Für den Score wird der Umsatz durch die Frontleistung geteilt (z.B. 0.8 = 80% Pensum), damit Teilzeit-Therapeuten fair mit Vollzeit verglichen werden. Die Spalte "Umsatz" zeigt diesen bereinigten Wert.<br>'
-      +'<strong>MTT Check-ins:</strong> Anzahl MTT-Termine im gewählten Zeitraum (monatsabhängig, reagiert auf den Monatsfilter) — wie beim Umsatz durch die Frontleistung geteilt, damit Teilzeit-Therapeuten fair verglichen werden.<br>'
+      +'<strong>MTT-Umsatz (Score):</strong> MTT-Umsatz durch Frontleistung geteilt — für fairen Vergleich zwischen Voll- und Teilzeit. Zeigt "–" bei älteren Imports ohne Aufschlüsselung.<br>'
       +'<strong>CHF/Termin:</strong> Gesamtumsatz ÷ Anzahl Termine — zeigt den durchschnittlichen Erlös pro Behandlung (ohne MTT-Abzug).<br>'
       +'<strong>Normierung:</strong> Bester Wert = 100 Punkte, schlechtester = 0 Punkte — linear skaliert nach Formel: <em>(Wert − Minimum) ÷ (Maximum − Minimum) × 100</em>. Der Zweite erhält also nicht automatisch z.B. 90 Punkte — es hängt davon ab, wie gross sein Abstand zum Besten ist. Liegt er sehr nah dran, fast 100; liegt er weit dahinter, entsprechend weniger. Scores gelten relativ zur sichtbaren Gruppe (Monat/Standort-Filter) und sind deshalb nicht direkt über verschiedene Monate vergleichbar.'
     +'</div>'
@@ -3745,13 +3761,13 @@ function renderM10() {
         +'<th style="padding:7px 10px;text-align:left;font-weight:700">Therapeut/in</th>'
         +'<th style="padding:7px 10px;font-weight:700">Standort</th>'
         +'<th style="padding:7px 10px;text-align:center;font-weight:700" title="Gewichteter Score: 25% Umsatz + 25% Auslastung + 20% CHF/Termin + 20% Absagequote (invertiert) + 10% MTT Check-ins. Normiert auf 0–100 relativ zur Gruppe.">Score ⓘ</th>'
-        +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="Effektiver Umsatz geteilt durch Frontleistung — ermöglicht fairen Vergleich zwischen Voll- und Teilzeit">Umsatz (FL-bereinigt) ⓘ</th>'
+        +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="Therapie + Produkte, geteilt durch Frontleistung — fairer Vergleich Voll-/Teilzeit">Therapie inkl. Prod. (FL-ber.) ⓘ</th>'
+        +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="MTT-Umsatz, geteilt durch Frontleistung">Umsatz MTT (FL-ber.) ⓘ</th>'
+        +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="Gesamtumsatz (Therapie + MTT), geteilt durch Frontleistung">Gesamtumsatz (FL-ber.) ⓘ</th>'
         +'<th style="padding:7px 10px;text-align:center;font-weight:700" title="Frontleistung: Pensum des Therapeuten (1.0 = 100%)">FL</th>'
-        +'<th style="padding:7px 10px;text-align:right;font-weight:700;color:#9ca3af" title="Tatsächlicher Umsatz — fliesst nicht in den Score ein">Umsatz effektiv</th>'
         +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="Aus Auslastungsanalyse · ✦ = keine Daten">Auslastung</th>'
         +'<th style="padding:7px 10px;text-align:right;font-weight:700">CHF/Termin</th>'
         +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="Aus Patientenübersicht · rot ≥20% · orange ≥12% · grün &lt;12%">Absagequote</th>'
-        +'<th style="padding:7px 10px;text-align:right;font-weight:700" title="Roh → FL-bereinigt: Anzahl MTT-Termine ÷ Frontleistungsanteil für fairen Vergleich">MTT (roh → FL-ber.)</th>'
       +'</tr></thead>'
       +'<tbody>'+tRows+'</tbody>'
     +'</table></div>'
@@ -3781,10 +3797,11 @@ function processM10Excel() {
         const therapist=vorname+' '+nachname;
         const locRaw=String(r[2]||'');
         const location=locRaw.includes('1 -')||locRaw.toLowerCase().includes('zürich')||locRaw.toLowerCase().includes('zuerich')?'Zuerich':'Kloten';
-        const mttC=parseFloat(r[3])||0;
-        const termine=parseFloat(r[4])||0;
-        const revenue=parseFloat(String(r[5]||'0').replace(/[^0-9.]/g,''))||0;
-        if(therapist.trim().length>2){filtered.push({therapist,location,month,termine,revenue,mtt:0,mttC});added++;}
+        const termine=parseFloat(String(r[3]||'0').replace(/[^0-9.]/g,''))||0;
+        const therapyRev=(parseFloat(String(r[4]||'0').replace(/[^0-9.]/g,''))||0)+(parseFloat(String(r[5]||'0').replace(/[^0-9.]/g,''))||0);
+        const mttRev=parseFloat(String(r[6]||'0').replace(/[^0-9.]/g,''))||0;
+        const revenue=parseFloat(String(r[7]||'0').replace(/[^0-9.]/g,''))||0;
+        if(therapist.trim().length>2){filtered.push({therapist,location,month,termine,revenue,therapyRev,mttRev});added++;}
       }
       localStorage.setItem('h41_m10_data',JSON.stringify(filtered));
       prev.textContent='✓ '+added+' Therapeuten für '+month+' importiert';
@@ -5778,7 +5795,7 @@ setView('home', null);
 function showScoreTip(e,el){
   var t=document.getElementById('kpi-score-tip');if(!t)return;
   var sRev=+el.dataset.srev,sUtil=+el.dataset.sutil,sRpt=+el.dataset.srpt,sAbs=+el.dataset.sabs,sMtt=+el.dataset.smtt;
-  var revN=+el.dataset.rev,util=el.dataset.util,rpt=+el.dataset.rpt,abs=el.dataset.abs,mttC=+el.dataset.mttc,mttNorm=+el.dataset.mttnorm,score=+el.dataset.score;
+  var revN=+el.dataset.rev,util=el.dataset.util,rpt=+el.dataset.rpt,abs=el.dataset.abs,mttRev=+el.dataset.mttrev,mttRevNorm=+el.dataset.mttrevnorm,score=+el.dataset.score;
   var c1=(sRev*.25).toFixed(1),c2=(sUtil*.25).toFixed(1),c3=(sRpt*.2).toFixed(1),c4=(sAbs*.2).toFixed(1),c5=(sMtt*.1).toFixed(1);
   var fmt=function(v){return'CHF '+Math.round(v).toLocaleString('de-CH');};
   t.innerHTML=
@@ -5788,7 +5805,7 @@ function showScoreTip(e,el){
     +'<tr><td style="padding:2px 10px 2px 0;color:#9ca3af">Auslastung</td><td style="padding:2px 8px;text-align:right">'+(util!==''?util+'%':'–')+'</td><td style="padding:2px 8px;text-align:right;color:#fbbf24">'+sUtil+' Pkt</td><td style="padding:2px 0;color:#6b7280">×25% = '+c2+'</td></tr>'
     +'<tr><td style="padding:2px 10px 2px 0;color:#9ca3af">CHF/Termin</td><td style="padding:2px 8px;text-align:right">CHF '+Math.round(rpt)+'</td><td style="padding:2px 8px;text-align:right;color:#fbbf24">'+sRpt+' Pkt</td><td style="padding:2px 0;color:#6b7280">×20% = '+c3+'</td></tr>'
     +'<tr><td style="padding:2px 10px 2px 0;color:#9ca3af">Absagequote ↓</td><td style="padding:2px 8px;text-align:right">'+(abs!==''?abs+'%':'–')+'</td><td style="padding:2px 8px;text-align:right;color:#fbbf24">'+sAbs+' Pkt</td><td style="padding:2px 0;color:#6b7280">×20% = '+c4+'</td></tr>'
-    +'<tr><td style="padding:2px 10px 2px 0;color:#9ca3af">MTT (FL-ber.)</td><td style="padding:2px 8px;text-align:right">'+mttC+' <span style="color:#6b7280">→ '+mttNorm+'</span></td><td style="padding:2px 8px;text-align:right;color:#fbbf24">'+sMtt+' Pkt</td><td style="padding:2px 0;color:#6b7280">×10% = '+c5+'</td></tr>'
+    +'<tr><td style="padding:2px 10px 2px 0;color:#9ca3af">MTT-Umsatz (FL-ber.)</td><td style="padding:2px 8px;text-align:right">'+(mttRevNorm>0?chf(mttRev,0)+' → '+chf(mttRevNorm,0):'–')+'</td><td style="padding:2px 8px;text-align:right;color:#fbbf24">'+sMtt+' Pkt</td><td style="padding:2px 0;color:#6b7280">×10% = '+c5+'</td></tr>'
     +'</table>'
     +'<div style="border-top:1px solid #374151;margin-top:6px;padding-top:6px;font-size:11px;color:#9ca3af;text-align:right">'+c1+' + '+c2+' + '+c3+' + '+c4+' + '+c5+' = <strong style="color:#34d399;font-size:13px">'+score+'</strong></div>';
   t.style.display='block';
