@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260812145644">
+<meta name="app-build" content="20260812150415">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -689,6 +689,10 @@ td{padding:8px 12px;vertical-align:middle}
         <option value="bereichsleiter">Bereichsleiter:in</option>
         <option value="fachlicher-leiter">Fachlicher Leiter</option>
       </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;border-left:1px solid rgba(255,255,255,.2);padding-left:12px">
+      <span id="hdr-build-lbl" title="Zuletzt aktualisiert" style="font-size:10px;color:rgba(255,255,255,.35);white-space:nowrap"></span>
+      <button onclick="forceFreshReload()" title="Lädt garantiert die neueste Version, umgeht jeden Browser-Cache" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">🔄 Update prüfen</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;border-left:1px solid rgba(255,255,255,.2);padding-left:12px">
       <div style="text-align:right">
@@ -5876,7 +5880,17 @@ function renderM13() {
   var el=document.getElementById('hdr-user'),rl=document.getElementById('hdr-role-lbl');
   if(el&&n) el.textContent=n;
   if(rl&&r) rl.textContent={'admin':'Admin','bereichsleiter':'Bereichsleiter:in','fachlicher-leiter':'Fachlicher Leiter'}[r]||'';
+  var bl=document.getElementById('hdr-build-lbl');
+  if(bl){
+    var b=document.querySelector('meta[name="app-build"]').content; // Format: YYYYMMDDHHmmss
+    if(b&&b.length>=12){
+      bl.textContent='Stand '+b.slice(6,8)+'.'+b.slice(4,6)+'. '+b.slice(8,10)+':'+b.slice(10,12);
+    }
+  }
 })();
+function forceFreshReload(){
+  location.href = location.pathname + '?_fresh=' + Date.now();
+}
 
 setView('home', null);
 function showScoreTip(e,el){
