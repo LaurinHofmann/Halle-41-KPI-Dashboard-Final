@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260812150415">
+<meta name="app-build" content="20260812162523">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -215,6 +215,81 @@ async function h41Sha256(str){
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- ===================== FIREBASE DATA SYNC (Phase 1: m2-m6) ===================== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCCqhlGhWhOhjKmVPAkx8O3lJL1gKLzm1E",
+    authDomain: "kpi-dashboard-f50d0.firebaseapp.com",
+    projectId: "kpi-dashboard-f50d0",
+    storageBucket: "kpi-dashboard-f50d0.firebasestorage.app",
+    messagingSenderId: "228137061265",
+    appId: "1:228137061265:web:0415ea95937bc033cfe830",
+    measurementId: "G-0J09DN9BMD"
+  };
+
+  var fbApp = null, db = null, auth = null, authReady = Promise.reject('H41Sync nicht initialisiert');
+  try {
+    fbApp = initializeApp(firebaseConfig);
+    auth = getAuth(fbApp);
+    db = getFirestore(fbApp);
+    try { await enableIndexedDbPersistence(db); } catch(e) { /* mehrere Tabs offen oder Browser ohne Unterstützung — Sync funktioniert trotzdem, nur ohne Offline-Cache */ }
+    authReady = new Promise(function(resolve){
+      onAuthStateChanged(auth, function(user){ if (user) resolve(user); });
+    });
+    signInAnonymously(auth).catch(function(err){ console.warn('H41Sync: anonyme Anmeldung fehlgeschlagen', err); });
+  } catch(e) {
+    console.warn('H41Sync: Firebase-Initialisierung fehlgeschlagen, Sync deaktiviert', e);
+  }
+
+  function subscribeModule(key, cb) {
+    if (!db) return;
+    authReady.then(function(){
+      onSnapshot(doc(db, 'modules', key), function(snap){
+        cb(snap.exists() ? (snap.data().records || []) : null, snap.metadata.hasPendingWrites);
+      }, function(err){
+        console.warn('H41Sync: Snapshot-Fehler für', key, err);
+        window.dispatchEvent(new CustomEvent('h41sync-error', {detail:{key:key}}));
+      });
+    }).catch(function(err){ console.warn('H41Sync: Auth nie bereit', err); });
+  }
+
+  async function upsertRecord(key, entry, keyFields) {
+    if (!db) throw new Error('H41Sync nicht verfügbar');
+    await authReady;
+    var ref = doc(db, 'modules', key);
+    await runTransaction(db, async function(tx){
+      var snap = await tx.get(ref);
+      var records = (snap.exists() && snap.data().records) || [];
+      var idx = records.findIndex(function(r){ return keyFields.every(function(f){ return r[f]===entry[f]; }); });
+      if (idx >= 0) records[idx] = entry; else records.push(entry);
+      tx.set(ref, { records: records, updatedAt: Date.now() });
+    });
+  }
+
+  async function replaceAll(key, records) {
+    if (!db) throw new Error('H41Sync nicht verfügbar');
+    await authReady;
+    await setDoc(doc(db, 'modules', key), { records: records, updatedAt: Date.now() });
+  }
+
+  async function seedIfEmpty(key, localRecords) {
+    if (!db || !localRecords || !localRecords.length) return false;
+    await authReady;
+    var ref = doc(db, 'modules', key);
+    var snap = await getDoc(ref);
+    if (!snap.exists()) { await setDoc(ref, { records: localRecords, updatedAt: Date.now() }); return true; }
+    return false;
+  }
+
+  window.H41Sync = { ready: authReady, subscribe: subscribeModule, upsert: upsertRecord, replaceAll: replaceAll, seedIfEmpty: seedIfEmpty };
+  window.dispatchEvent(new CustomEvent('h41sync-loaded'));
+</script>
+
 <script>
 const RAW = [
   {"company":"Universitätsklinik Balgrist","person":"Armando Hoch","location":"Zuerich","values":[1010.17,3299.22,3832.06,6155.4,2117.44,9266.62,1045.96,2768.57,7800.16,1936.38,5632.71,8784.85,11417.09,8933.71,19608.55,6473.84,6748.34,23049.04,1844.29,7398.38,11921.27,12271.46,6149.66]},
@@ -692,6 +767,7 @@ td{padding:8px 12px;vertical-align:middle}
     </div>
     <div style="display:flex;align-items:center;gap:6px;border-left:1px solid rgba(255,255,255,.2);padding-left:12px">
       <span id="hdr-build-lbl" title="Zuletzt aktualisiert" style="font-size:10px;color:rgba(255,255,255,.35);white-space:nowrap"></span>
+      <span id="hdr-sync-lbl" title="Live-Sync-Status (Gesamtumsatz, Ersttermine, MTT, UVG, Therapeuten)" style="font-size:10px;color:rgba(255,255,255,.35);white-space:nowrap"></span>
       <button onclick="forceFreshReload()" title="Lädt garantiert die neueste Version, umgeht jeden Browser-Cache" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">🔄 Update prüfen</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;border-left:1px solid rgba(255,255,255,.2);padding-left:12px">
@@ -2237,9 +2313,64 @@ function loadModData(key) {
   }
   return JSON.parse(stored || '[]');
 }
-function saveModData(key, data) {
+function saveModData(key, data, mergeInfo) {
   localStorage.setItem('h41_'+key+'_data', JSON.stringify(data));
+  if (H41_SYNC_KEYS.indexOf(key) !== -1) scheduleCloudSync(key, data, mergeInfo);
 }
+
+/* ===================== FIREBASE SYNC (Phase 1: m2-m6) — Anbindung ===================== */
+var H41_SYNC_KEYS = ['m2','m3','m4','m5','m6'];
+var H41_KEY_FIELDS = { m2:['month','location'], m3:['month','location'], m4:['month','location'], m5:['month','location'], m6:['month','location','therapist'] };
+var _h41SyncStatus = {}; // key -> 'ok' | 'error' | 'pending'
+var _h41SyncSuppressUntil = {}; // key -> timestamp, vermeidet Render-Loop direkt nach eigenem Schreiben
+
+function scheduleCloudSync(key, data, mergeInfo) {
+  if (!window.H41Sync) { markSyncStatus(key, 'error'); return; }
+  markSyncStatus(key, 'pending');
+  var p = (mergeInfo && mergeInfo.upsert)
+    ? window.H41Sync.upsert(key, mergeInfo.upsert.entry, H41_KEY_FIELDS[key])
+    : window.H41Sync.replaceAll(key, data);
+  p.then(function(){
+    _h41SyncSuppressUntil[key] = Date.now() + 3000;
+    markSyncStatus(key, 'ok');
+  }).catch(function(err){
+    console.warn('H41Sync: Schreiben fehlgeschlagen für', key, err);
+    markSyncStatus(key, 'error');
+  });
+}
+
+function markSyncStatus(key, status) {
+  _h41SyncStatus[key] = status;
+  var el = document.getElementById(key+'-autosave-msg');
+  if (el && status === 'error') { el.style.color = '#f59e0b'; el.textContent = '⚠ Cloud-Sync fehlgeschlagen – lokal gespeichert'; }
+  var hdr = document.getElementById('hdr-sync-lbl');
+  if (hdr) {
+    var vals = H41_SYNC_KEYS.map(function(k){ return _h41SyncStatus[k]; });
+    if (vals.indexOf('error') !== -1) { hdr.textContent = '⚠ Sync-Fehler'; hdr.style.color = '#f59e0b'; }
+    else if (vals.indexOf('pending') !== -1) { hdr.textContent = '☁ Sync…'; hdr.style.color = 'rgba(255,255,255,.4)'; }
+    else { hdr.textContent = '☁ Sync OK'; hdr.style.color = 'rgba(255,255,255,.4)'; }
+  }
+}
+
+function initH41Sync() {
+  if (!window.H41Sync) return;
+  H41_SYNC_KEYS.forEach(function(key){
+    var local = (function(){ try { return JSON.parse(localStorage.getItem('h41_'+key+'_data')||'[]'); } catch(e){ return []; } })();
+    window.H41Sync.seedIfEmpty(key, local).catch(function(){});
+    window.H41Sync.subscribe(key, function(records){
+      if (records === null) return; // Dokument existiert noch nicht (Seed läuft evtl. gerade)
+      if (_h41SyncSuppressUntil[key] && Date.now() < _h41SyncSuppressUntil[key]) return; // Echo der eigenen Schreibung
+      var incoming = JSON.stringify(records);
+      if (incoming === localStorage.getItem('h41_'+key+'_data')) return; // keine echte Änderung
+      localStorage.setItem('h41_'+key+'_data', incoming);
+      renderMod(key);
+      updateHomeTiles();
+      markSyncStatus(key, 'ok');
+    });
+  });
+}
+if (window.H41Sync) initH41Sync();
+else window.addEventListener('h41sync-loaded', initH41Sync, {once:true});
 
 /* ===================== AUTO-SAVE für manuelle Eingabeformulare ===================== */
 function markAutosaved(elId) {
@@ -2587,7 +2718,7 @@ function saveM2Entry(silent) {
   } else {
     data.push(entry);
   }
-  saveModData('m2', data);
+  saveModData('m2', data, {upsert:{entry:entry}});
   if (silent) { markAutosaved('m2-autosave-msg'); return; }
   toggleM2Form();
   renderM2();
@@ -4742,7 +4873,7 @@ function saveM3Entry(silent) {
   const data=loadModData('m3');
   const idx=data.findIndex(r=>r.month===month&&r.location===loc);
   if (idx>=0) data[idx]=entry; else data.push(entry);
-  saveModData('m3', data.sort((a,b)=>a.month.localeCompare(b.month)));
+  saveModData('m3', data.sort((a,b)=>a.month.localeCompare(b.month)), {upsert:{entry:entry}});
   if (silent) { markAutosaved('m3-autosave-msg'); return; }
   toggleM3Form(); renderMod('m3'); updateHomeTiles();
 }
@@ -4762,7 +4893,7 @@ function saveM4Entry(silent) {
   const data=loadModData('m4');
   const idx=data.findIndex(r=>r.month===month&&r.location===loc);
   if (idx>=0) data[idx]=entry; else data.push(entry);
-  saveModData('m4', data.sort((a,b)=>a.month.localeCompare(b.month)));
+  saveModData('m4', data.sort((a,b)=>a.month.localeCompare(b.month)), {upsert:{entry:entry}});
   if (silent) { markAutosaved('m4-autosave-msg'); return; }
   toggleM4Form(); renderMod('m4'); updateHomeTiles();
 }
@@ -4780,7 +4911,7 @@ function saveM5Entry(silent) {
   const data=loadModData('m5');
   const idx=data.findIndex(r=>r.month===month&&r.location===loc);
   if (idx>=0) data[idx]=entry; else data.push(entry);
-  saveModData('m5', data.sort((a,b)=>a.month.localeCompare(b.month)));
+  saveModData('m5', data.sort((a,b)=>a.month.localeCompare(b.month)), {upsert:{entry:entry}});
   if (silent) { markAutosaved('m5-autosave-msg'); return; }
   toggleM5Form(); renderMod('m5'); updateHomeTiles();
 }
@@ -4800,7 +4931,7 @@ function saveM6Entry(silent) {
   const data=loadModData('m6');
   const idx=data.findIndex(r=>r.month===month&&r.location===loc&&r.therapist===therapist);
   if (idx>=0) data[idx]=entry; else data.push(entry);
-  saveModData('m6', data.sort((a,b)=>a.month.localeCompare(b.month)));
+  saveModData('m6', data.sort((a,b)=>a.month.localeCompare(b.month)), {upsert:{entry:entry}});
   if (silent) { markAutosaved('m6-autosave-msg'); return; }
   toggleM6Form(); renderMod('m6'); updateHomeTiles();
 }
