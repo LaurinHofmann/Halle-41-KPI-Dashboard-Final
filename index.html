@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260812110455">
+<meta name="app-build" content="20260812135833">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -2196,16 +2196,24 @@ function loadModData(key) {
   if (key === 'vo_early') return JSON.parse(JSON.stringify(VO_EARLY_INIT));
   if (key === 'm10') {
     const s=localStorage.getItem('h41_m10_data');
-    if(!s) return JSON.parse(JSON.stringify(T_SCORECARD_INIT));
-    const d=JSON.parse(s);
-    if(!d.length) return JSON.parse(JSON.stringify(T_SCORECARD_INIT));
-    // Migration: Historische Monate (Jan–Jul 2026) immer mit den aktuellen Cenplex-Seed-Daten synchronisieren
-    const histMonths=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07'];
-    const rest=d.filter(r=>!histMonths.includes(r.month));
-    const seed=T_SCORECARD_INIT.filter(r=>histMonths.includes(r.month));
-    const merged=[...rest,...seed];
-    if(JSON.stringify(merged)!==JSON.stringify(d)) localStorage.setItem('h41_m10_data',JSON.stringify(merged));
-    return merged;
+    if(!s){ localStorage.setItem('h41_m10_mig','m10_mig_2026_08_12'); return JSON.parse(JSON.stringify(T_SCORECARD_INIT)); }
+    let d=JSON.parse(s);
+    if(!d.length){ localStorage.setItem('h41_m10_mig','m10_mig_2026_08_12'); return JSON.parse(JSON.stringify(T_SCORECARD_INIT)); }
+    // Einmalige Migration (läuft nur 1x pro Browser, überschreibt danach NIE wieder eigene Uploads):
+    // korrigiert alte Datensätze ohne Umsatz-Breakdown für abgeschlossene Monate Jan–Jun.
+    // Juli+ bleibt unangetastet, da dort eigene Cenplex-Uploads Vorrang haben.
+    if(localStorage.getItem('h41_m10_mig')!=='m10_mig_2026_08_12'){
+      const closedMonths=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
+      const rest=d.filter(r=>!closedMonths.includes(r.month));
+      const seed=T_SCORECARD_INIT.filter(r=>closedMonths.includes(r.month));
+      d=[...rest,...seed];
+      localStorage.setItem('h41_m10_mig','m10_mig_2026_08_12');
+    }
+    // Robin Post dauerhaft ausschliessen (nicht mehr im Cenplex-Export enthalten)
+    const cleaned=d.filter(r=>r.therapist!=='Robin Post');
+    if(cleaned.length!==d.length) d=cleaned;
+    localStorage.setItem('h41_m10_data',JSON.stringify(d));
+    return d;
   }
   if (key === 'm11') {
     if (!stored) return [{"name":"Robin","total":1514,"cancelled":195},{"name":"Florian","total":1454,"cancelled":136},{"name":"Sophia","total":1670,"cancelled":142},{"name":"David","total":1497,"cancelled":179},{"name":"Tomas","total":1490,"cancelled":188},{"name":"Gabriela","total":1171,"cancelled":168}];
