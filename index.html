@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260812141807">
+<meta name="app-build" content="20260812145644">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -870,6 +870,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="display:flex;gap:8px">
       <button onclick="saveM2Entry()" style="padding:7px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>
       <button onclick="toggleM2Form()" style="padding:7px 16px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:13px;cursor:pointer">Abbrechen</button>
+      <span id="m2-autosave-msg" style="font-size:11px;color:#9ca3af;align-self:center"></span>
     </div>
   </div>
   <div id="m2-content"></div>
@@ -904,6 +905,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="display:flex;gap:8px">
       <button onclick="saveM3Entry()" style="padding:7px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>
       <button onclick="toggleM3Form()" style="padding:7px 16px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:13px;cursor:pointer">Abbrechen</button>
+      <span id="m3-autosave-msg" style="font-size:11px;color:#9ca3af;align-self:center"></span>
     </div>
   </div>
   <div id="m3-content"></div>
@@ -936,6 +938,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="display:flex;gap:8px">
       <button onclick="saveM4Entry()" style="padding:7px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>
       <button onclick="toggleM4Form()" style="padding:7px 16px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:13px;cursor:pointer">Abbrechen</button>
+      <span id="m4-autosave-msg" style="font-size:11px;color:#9ca3af;align-self:center"></span>
     </div>
   </div>
   <div id="m4-content"></div>
@@ -966,6 +969,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="display:flex;gap:8px">
       <button onclick="saveM5Entry()" style="padding:7px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>
       <button onclick="toggleM5Form()" style="padding:7px 16px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:13px;cursor:pointer">Abbrechen</button>
+      <span id="m5-autosave-msg" style="font-size:11px;color:#9ca3af;align-self:center"></span>
     </div>
   </div>
   <div id="m5-content"></div>
@@ -997,6 +1001,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="display:flex;gap:8px">
       <button onclick="saveM6Entry()" style="padding:7px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>
       <button onclick="toggleM6Form()" style="padding:7px 16px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:13px;cursor:pointer">Abbrechen</button>
+      <span id="m6-autosave-msg" style="font-size:11px;color:#9ca3af;align-self:center"></span>
     </div>
   </div>
   <div id="m6-content"></div>
@@ -2231,6 +2236,41 @@ function loadModData(key) {
 function saveModData(key, data) {
   localStorage.setItem('h41_'+key+'_data', JSON.stringify(data));
 }
+
+/* ===================== AUTO-SAVE für manuelle Eingabeformulare ===================== */
+function markAutosaved(elId) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var t = new Date();
+  var hh = String(t.getHours()).padStart(2,'0'), mm = String(t.getMinutes()).padStart(2,'0'), ss = String(t.getSeconds()).padStart(2,'0');
+  el.style.color = '#16a34a';
+  el.textContent = '✓ Automatisch gespeichert · ' + hh + ':' + mm + ':' + ss;
+}
+var AUTOSAVE_FORMS = {
+  'm2-entry-form':  function(){ saveM2Entry(true); },
+  'm3-entry-form':  function(){ saveM3Entry(true); },
+  'm4-entry-form':  function(){ saveM4Entry(true); },
+  'm5-entry-form':  function(){ saveM5Entry(true); },
+  'm6-entry-form':  function(){ saveM6Entry(true); }
+};
+var _autosaveTimers = {};
+function _handleAutosaveEvent(e) {
+  var t = e.target;
+  if (!t || !t.matches || !t.matches('input, select, textarea')) return;
+  var formEl = t.closest('[id$="-entry-form"]');
+  if (formEl && AUTOSAVE_FORMS[formEl.id]) {
+    clearTimeout(_autosaveTimers[formEl.id]);
+    _autosaveTimers[formEl.id] = setTimeout(AUTOSAVE_FORMS[formEl.id], 900);
+    return;
+  }
+  if (t.closest('#m13-weiss-table')) {
+    clearTimeout(_autosaveTimers.m13weiss);
+    _autosaveTimers.m13weiss = setTimeout(function(){ saveM13Weiss(true); }, 900);
+  }
+}
+document.addEventListener('input', _handleAutosaveEvent);
+document.addEventListener('change', _handleAutosaveEvent);
+
 function loadTargets(key) {
   return JSON.parse(localStorage.getItem('h41_'+key+'_targets') || '{}');
 }
@@ -2526,10 +2566,10 @@ function calcM2Therapie() {
   document.getElementById('m2-therapie').value = tot - mt > 0 ? (tot - mt) : '';
 }
 
-function saveM2Entry() {
+function saveM2Entry(silent) {
   const month    = document.getElementById('m2-month').value;
   const location = document.getElementById('m2-loc').value;
-  if (!month || !month.match(/^\d{4}-\d{2}$/)) { alert('Bitte einen Monat auswählen.'); return; }
+  if (!month || !month.match(/^\d{4}-\d{2}$/)) { if(!silent) alert('Bitte einen Monat auswählen.'); return; }
   const therapie = parseFloat(document.getElementById('m2-therapie').value) || 0;
   const mtt      = parseFloat(document.getElementById('m2-mtt').value)      || 0;
   const uvg      = parseFloat(document.getElementById('m2-uvg').value)      || 0;
@@ -2538,12 +2578,13 @@ function saveM2Entry() {
   const data   = loadModData('m2');
   const idx    = data.findIndex(r => r.month === month && r.location === location);
   if (idx >= 0) {
-    if (!confirm('Eintrag für ' + month + ' (' + (location==='Zuerich'?'Zürich':'Kloten') + ') ist bereits vorhanden. Überschreiben?')) return;
+    if (!silent && !confirm('Eintrag für ' + month + ' (' + (location==='Zuerich'?'Zürich':'Kloten') + ') ist bereits vorhanden. Überschreiben?')) return;
     data[idx] = entry;
   } else {
     data.push(entry);
   }
   saveModData('m2', data);
+  if (silent) { markAutosaved('m2-autosave-msg'); return; }
   toggleM2Form();
   renderM2();
   updateHomeTiles();
@@ -4687,10 +4728,10 @@ if (!_m11d||!_m11d.data||!_m11d.data[0].location) {
 
 /* ===================== MODULE ENTRY FORMS ===================== */
 function toggleM3Form() { document.getElementById('m3-entry-form').classList.toggle('vis'); }
-function saveM3Entry() {
+function saveM3Entry(silent) {
   const month=document.getElementById('m3-month').value;
   const loc=document.getElementById('m3-loc').value;
-  if (!month) { alert('Bitte Monat wählen.'); return; }
+  if (!month) { if(!silent) alert('Bitte Monat wählen.'); return; }
   const entry={month,location:loc,
     ersttermine:parseFloat(document.getElementById('m3-erst').value)||0
   };
@@ -4698,14 +4739,15 @@ function saveM3Entry() {
   const idx=data.findIndex(r=>r.month===month&&r.location===loc);
   if (idx>=0) data[idx]=entry; else data.push(entry);
   saveModData('m3', data.sort((a,b)=>a.month.localeCompare(b.month)));
+  if (silent) { markAutosaved('m3-autosave-msg'); return; }
   toggleM3Form(); renderMod('m3'); updateHomeTiles();
 }
 
 function toggleM4Form() { document.getElementById('m4-entry-form').classList.toggle('vis'); }
-function saveM4Entry() {
+function saveM4Entry(silent) {
   const month=document.getElementById('m4-month').value;
   const loc=document.getElementById('m4-loc').value;
-  if (!month) { alert('Bitte Monat wählen.'); return; }
+  if (!month) { if(!silent) alert('Bitte Monat wählen.'); return; }
   const entry={month,location:loc,
     revenue:parseFloat(document.getElementById('m4-revenue').value)||0,
     active_abos:parseFloat(document.getElementById('m4-active').value)||0,
@@ -4717,14 +4759,15 @@ function saveM4Entry() {
   const idx=data.findIndex(r=>r.month===month&&r.location===loc);
   if (idx>=0) data[idx]=entry; else data.push(entry);
   saveModData('m4', data.sort((a,b)=>a.month.localeCompare(b.month)));
+  if (silent) { markAutosaved('m4-autosave-msg'); return; }
   toggleM4Form(); renderMod('m4'); updateHomeTiles();
 }
 
 function toggleM5Form() { document.getElementById('m5-entry-form').classList.toggle('vis'); }
-function saveM5Entry() {
+function saveM5Entry(silent) {
   const month=document.getElementById('m5-month').value;
   const loc=document.getElementById('m5-loc').value;
-  if (!month) { alert('Bitte Monat wählen.'); return; }
+  if (!month) { if(!silent) alert('Bitte Monat wählen.'); return; }
   const entry={month,location:loc,
     termine:parseFloat(document.getElementById('m5-termine').value)||0,
     umsatz:parseFloat(document.getElementById('m5-umsatz').value)||0,
@@ -4734,15 +4777,17 @@ function saveM5Entry() {
   const idx=data.findIndex(r=>r.month===month&&r.location===loc);
   if (idx>=0) data[idx]=entry; else data.push(entry);
   saveModData('m5', data.sort((a,b)=>a.month.localeCompare(b.month)));
+  if (silent) { markAutosaved('m5-autosave-msg'); return; }
   toggleM5Form(); renderMod('m5'); updateHomeTiles();
 }
 
 function toggleM6Form() { document.getElementById('m6-entry-form').classList.toggle('vis'); }
-function saveM6Entry() {
+function saveM6Entry(silent) {
   const month=document.getElementById('m6-month').value;
   const loc=document.getElementById('m6-loc').value;
   const therapist=document.getElementById('m6-therapist').value.trim();
-  if (!month) { alert('Bitte Monat wählen.'); return; }
+  if (!month) { if(!silent) alert('Bitte Monat wählen.'); return; }
+  if (silent && !therapist) return;
   const entry={month,location:loc,therapist,
     hours:parseFloat(document.getElementById('m6-hours').value)||0,
     sick_days:parseFloat(document.getElementById('m6-sick').value)||0,
@@ -4752,6 +4797,7 @@ function saveM6Entry() {
   const idx=data.findIndex(r=>r.month===month&&r.location===loc&&r.therapist===therapist);
   if (idx>=0) data[idx]=entry; else data.push(entry);
   saveModData('m6', data.sort((a,b)=>a.month.localeCompare(b.month)));
+  if (silent) { markAutosaved('m6-autosave-msg'); return; }
   toggleM6Form(); renderMod('m6'); updateHomeTiles();
 }
 
@@ -5668,10 +5714,10 @@ function renderM13WeissForm() {
   container.innerHTML=buildWeissLocTable(klP,'Kloten','#6366f1')+buildWeissLocTable(zhP,'Zürich','#3b82f6');
 }
 
-function saveM13Weiss() {
+function saveM13Weiss(silent) {
   var month=document.getElementById('m13-weiss-month').value;
   var msgEl=document.getElementById('m13-weiss-msg');
-  if(!month){msgEl.style.color='#ef4444';msgEl.textContent='Bitte Monat auswählen.';return;}
+  if(!month){ if(!silent){msgEl.style.color='#ef4444';msgEl.textContent='Bitte Monat auswählen.';} return; }
   var inputs=document.querySelectorAll('#m13-weiss-table input[type="number"]');
   var entries=[];
   inputs.forEach(function(inp){
@@ -5683,6 +5729,7 @@ function saveM13Weiss() {
   var existing=JSON.parse(localStorage.getItem('h41_weiss_manual')||'[]');
   var merged=existing.filter(function(r){return !(r.month===month&&savedLocs[r.loc]);}).concat(entries);
   localStorage.setItem('h41_weiss_manual',JSON.stringify(merged));
+  if(silent){ markAutosaved('m13-weiss-msg'); renderM13(); return; }
   msgEl.style.color='#16a34a';msgEl.textContent='✓ '+entries.length+' Einträge für '+month+' gespeichert.';
   setTimeout(function(){msgEl.textContent='';},3000);
   renderM13();
