@@ -286,7 +286,35 @@ async function h41Sha256(str){
     return false;
   }
 
-  window.H41Sync = { ready: authReady, subscribe: subscribeModule, upsert: upsertRecord, replaceAll: replaceAll, seedIfEmpty: seedIfEmpty };
+  // Generische "Rohwert"-Synchronisation (Phase 2): ein Firestore-Dokument pro localStorage-Key,
+  // Inhalt ist einfach der komplette JSON-String — keine Interpretation der Struktur nötig.
+  function subscribeRaw(key, cb) {
+    if (!db) return;
+    authReady.then(function(){
+      onSnapshot(doc(db, 'raw', key), function(snap){
+        cb(snap.exists() ? snap.data().value : null, snap.metadata.hasPendingWrites);
+      }, function(err){
+        console.warn('H41Sync: Raw-Snapshot-Fehler für', key, err);
+        window.dispatchEvent(new CustomEvent('h41sync-error', {detail:{key:key}}));
+      });
+    }).catch(function(err){ console.warn('H41Sync: Auth nie bereit', err); });
+  }
+  async function replaceRaw(key, jsonString) {
+    if (!db) throw new Error('H41Sync nicht verfügbar');
+    await authReady;
+    await setDoc(doc(db, 'raw', key), { value: jsonString, updatedAt: Date.now() });
+  }
+  async function seedRawIfEmpty(key, localJsonString) {
+    if (!db || localJsonString == null) return false;
+    await authReady;
+    var ref = doc(db, 'raw', key);
+    var snap = await getDoc(ref);
+    if (!snap.exists()) { await setDoc(ref, { value: localJsonString, updatedAt: Date.now() }); return true; }
+    return false;
+  }
+
+  window.H41Sync = { ready: authReady, subscribe: subscribeModule, upsert: upsertRecord, replaceAll: replaceAll, seedIfEmpty: seedIfEmpty,
+                      subscribeRaw: subscribeRaw, replaceRaw: replaceRaw, seedRawIfEmpty: seedRawIfEmpty };
   window.dispatchEvent(new CustomEvent('h41sync-loaded'));
 </script>
 
@@ -1226,7 +1254,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div id="m13-up-msg" style="font-size:12px;min-height:18px;margin-bottom:8px"></div>
     <div style="border-top:1px solid #e5e7eb;padding-top:10px;display:flex;align-items:center;gap:12px">
       <span style="font-size:11.5px;color:#9ca3af">Gespeicherte Uploads: <span id="m13-saved-count">0</span></span>
-      <button onclick="if(confirm('Alle hochgeladenen Daten löschen?')){localStorage.removeItem('h41_auslastung_uploaded');renderM13();}" style="padding:3px 10px;border-radius:5px;border:1px solid #fca5a5;background:#fee2e2;color:#b91c1c;font-size:11.5px;cursor:pointer">Alle löschen</button>
+      <button onclick="if(confirm('Alle hochgeladenen Daten löschen?')){localStorage.setItem('h41_auslastung_uploaded','[]');h41SyncRaw('h41_auslastung_uploaded');renderM13();}" style="padding:3px 10px;border-radius:5px;border:1px solid #fca5a5;background:#fee2e2;color:#b91c1c;font-size:11.5px;cursor:pointer">Alle löschen</button>
     </div>
   </div>
   <div id="m13-weiss-wrap" class="weiss-entry" style="margin:0 28px;display:none">
@@ -1239,7 +1267,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <button onclick="saveM13Weiss()" style="padding:8px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>
       <div id="m13-weiss-msg" style="font-size:12px;min-height:18px"></div>
-      <button class="admin-only" onclick="if(confirm('Alle manuell erfassten Weisse-Fläche-Daten löschen?')){localStorage.removeItem('h41_weiss_manual');renderM13WeissForm();renderM13();}" style="padding:3px 10px;border-radius:5px;border:1px solid #fca5a5;background:#fee2e2;color:#b91c1c;font-size:11.5px;cursor:pointer;margin-left:auto">Alle Weiss-Daten löschen</button>
+      <button class="admin-only" onclick="if(confirm('Alle manuell erfassten Weisse-Fläche-Daten löschen?')){localStorage.setItem('h41_weiss_manual','[]');h41SyncRaw('h41_weiss_manual');renderM13WeissForm();renderM13();}" style="padding:3px 10px;border-radius:5px;border:1px solid #fca5a5;background:#fee2e2;color:#b91c1c;font-size:11.5px;cursor:pointer;margin-left:auto">Alle Weiss-Daten löschen</button>
     </div>
   </div>
   <div class="mod-kpis" id="m13-kpis"></div>
@@ -1539,6 +1567,7 @@ function loadVisits() {
 function saveCustomVisits(visits) {
   const custom = visits.filter(v => v.id > VISITS_BASE.length || !VISITS_BASE.find(b => b.id === v.id));
   localStorage.setItem('h41_visits', JSON.stringify(custom));
+  h41SyncRaw('h41_visits');
 }
 
 /* ===================== HELPERS ===================== */
@@ -2345,7 +2374,7 @@ function markSyncStatus(key, status) {
   if (el && status === 'error') { el.style.color = '#f59e0b'; el.textContent = '⚠ Cloud-Sync fehlgeschlagen – lokal gespeichert'; }
   var hdr = document.getElementById('hdr-sync-lbl');
   if (hdr) {
-    var vals = H41_SYNC_KEYS.map(function(k){ return _h41SyncStatus[k]; });
+    var vals = H41_SYNC_KEYS.concat(H41_SYNC_RAW_KEYS || []).map(function(k){ return _h41SyncStatus[k]; });
     if (vals.indexOf('error') !== -1) { hdr.textContent = '⚠ Sync-Fehler'; hdr.style.color = '#f59e0b'; }
     else if (vals.indexOf('pending') !== -1) { hdr.textContent = '☁ Sync…'; hdr.style.color = 'rgba(255,255,255,.4)'; }
     else { hdr.textContent = '☁ Sync OK'; hdr.style.color = 'rgba(255,255,255,.4)'; }
@@ -2368,9 +2397,47 @@ function initH41Sync() {
       markSyncStatus(key, 'ok');
     });
   });
+  H41_SYNC_RAW_KEYS.forEach(function(lsKey){
+    var local = localStorage.getItem(lsKey);
+    window.H41Sync.seedRawIfEmpty(lsKey, local).catch(function(){});
+    window.H41Sync.subscribeRaw(lsKey, function(value){
+      if (value === null) return; // Dokument existiert noch nicht (Seed läuft evtl. gerade)
+      if (_h41SyncSuppressUntil[lsKey] && Date.now() < _h41SyncSuppressUntil[lsKey]) return; // Echo der eigenen Schreibung
+      if (value === localStorage.getItem(lsKey)) return; // keine echte Änderung
+      localStorage.setItem(lsKey, value);
+      var fn = H41_RAW_RENDER[lsKey];
+      if (fn) fn();
+      updateHomeTiles();
+      markSyncStatus(lsKey, 'ok');
+    });
+  });
 }
 if (window.H41Sync) initH41Sync();
 else window.addEventListener('h41sync-loaded', initH41Sync, {once:true});
+
+/* ===================== FIREBASE SYNC (Phase 2: Zuweiser-Monitor, Auslastung, Weisse Fläche, Einstellungen) ===================== */
+var H41_SYNC_RAW_KEYS = ['h41_visits','h41_merges','h41_notes','h41_auslastung_uploaded','h41_weiss_manual','h41_arbeitstage','h41_mass_months'];
+var H41_RAW_RENDER = {
+  h41_visits: function(){ if (typeof render==='function') render(); },
+  h41_merges: function(){ if (typeof render==='function') render(); },
+  h41_notes:  function(){ if (typeof render==='function') render(); },
+  h41_auslastung_uploaded: function(){ renderMod('m13'); },
+  h41_weiss_manual: function(){ if (typeof renderM13WeissForm==='function') renderM13WeissForm(); renderMod('m13'); },
+  h41_arbeitstage: function(){ if (typeof currentView!=='undefined' && currentView && currentView.startsWith('m')) renderMod(currentView); },
+  h41_mass_months: function(){ if (typeof currentView!=='undefined' && currentView && currentView.startsWith('m')) renderMod(currentView); }
+};
+function h41SyncRaw(lsKey) {
+  if (H41_SYNC_RAW_KEYS.indexOf(lsKey) === -1) return;
+  if (!window.H41Sync) { markSyncStatus(lsKey, 'error'); return; }
+  markSyncStatus(lsKey, 'pending');
+  window.H41Sync.replaceRaw(lsKey, localStorage.getItem(lsKey)).then(function(){
+    _h41SyncSuppressUntil[lsKey] = Date.now() + 3000;
+    markSyncStatus(lsKey, 'ok');
+  }).catch(function(err){
+    console.warn('H41Sync: Raw-Schreiben fehlgeschlagen für', lsKey, err);
+    markSyncStatus(lsKey, 'error');
+  });
+}
 
 /* ===================== AUTO-SAVE für manuelle Eingabeformulare ===================== */
 function markAutosaved(elId) {
@@ -4613,6 +4680,7 @@ function saveVisit() {
     });
   }
   localStorage.setItem('h41_visits', JSON.stringify(custom));
+  h41SyncRaw('h41_visits');
   document.getElementById('visit-form').classList.remove('vis');
   editingVisitId = null;
   renderVisits();
@@ -4677,8 +4745,8 @@ function jumpToReferrer(label) {
 
 /* ===================== MERGE ===================== */
 function getMerges() { return new Set(JSON.parse(localStorage.getItem('h41_merges')||'[]')); }
-function saveMerges(s) { localStorage.setItem('h41_merges', JSON.stringify([...s])); }
-function clearAllMerges() { localStorage.removeItem('h41_merges'); document.getElementById('merge-modal').classList.remove('vis'); render(); updateKPIs(); }
+function saveMerges(s) { localStorage.setItem('h41_merges', JSON.stringify([...s])); h41SyncRaw('h41_merges'); }
+function clearAllMerges() { localStorage.setItem('h41_merges','[]'); h41SyncRaw('h41_merges'); document.getElementById('merge-modal').classList.remove('vis'); render(); updateKPIs(); }
 
 function getMergeCandidates() {
   const byLabel = {};
@@ -4772,12 +4840,14 @@ function saveNotePopup() {
   const notes = getNotes();
   if (text) notes[_noteKey]=text; else delete notes[_noteKey];
   localStorage.setItem('h41_notes', JSON.stringify(notes));
+  h41SyncRaw('h41_notes');
   closeNote(); render();
 }
 function deleteNote() {
   const notes = getNotes();
   delete notes[_noteKey];
   localStorage.setItem('h41_notes', JSON.stringify(notes));
+  h41SyncRaw('h41_notes');
   closeNote(); render();
 }
 function closeNote() {
@@ -5103,6 +5173,7 @@ function saveSettingsAT() {
     if (v > 0) ARBEITSTAGE[inp.dataset.m] = v;
   });
   localStorage.setItem('h41_arbeitstage', JSON.stringify(ARBEITSTAGE));
+  h41SyncRaw('h41_arbeitstage');
   closeSettings();
   if (currentView && currentView.startsWith('m')) renderMod(currentView);
   updateHomeTiles();
@@ -5121,6 +5192,7 @@ function saveSettingsMM() {
   MASS_MONTHS = new Set();
   document.querySelectorAll('#mm-grid input[data-m]').forEach(cb => { if (cb.checked) MASS_MONTHS.add(cb.dataset.m); });
   localStorage.setItem('h41_mass_months', JSON.stringify([...MASS_MONTHS]));
+  h41SyncRaw('h41_mass_months');
   closeSettings();
   if (currentView && currentView.startsWith('m')) renderMod(currentView);
   updateHomeTiles();
@@ -5769,6 +5841,7 @@ function processM13Upload() {
       var existing=JSON.parse(localStorage.getItem('h41_auslastung_uploaded')||'[]');
       var merged=existing.filter(function(d){return d.month!==month;}).concat(newEntries);
       localStorage.setItem('h41_auslastung_uploaded',JSON.stringify(merged));
+      h41SyncRaw('h41_auslastung_uploaded');
       msgEl.style.color='#16a34a';msgEl.textContent='✓ '+newEntries.length+' Einträge für '+month+' importiert.';
       renderM13();
     }catch(err){msgEl.style.color='#ef4444';msgEl.textContent='Fehler: '+err.message;}
@@ -5864,6 +5937,7 @@ function saveM13Weiss(silent) {
   var existing=JSON.parse(localStorage.getItem('h41_weiss_manual')||'[]');
   var merged=existing.filter(function(r){return !(r.month===month&&savedLocs[r.loc]);}).concat(entries);
   localStorage.setItem('h41_weiss_manual',JSON.stringify(merged));
+  h41SyncRaw('h41_weiss_manual');
   if(silent){ markAutosaved('m13-weiss-msg'); renderM13(); return; }
   msgEl.style.color='#16a34a';msgEl.textContent='✓ '+entries.length+' Einträge für '+month+' gespeichert.';
   setTimeout(function(){msgEl.textContent='';},3000);
