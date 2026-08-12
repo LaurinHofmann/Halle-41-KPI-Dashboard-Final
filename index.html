@@ -6,15 +6,21 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260812135833">
+<meta name="app-build" content="20260812141807">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
   var CURRENT_BUILD = document.querySelector('meta[name="app-build"]').content;
+  function isEditing(){
+    var ae = document.activeElement;
+    if(!ae) return false;
+    var tag = ae.tagName;
+    return tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||ae.isContentEditable;
+  }
   function checkForUpdate(){
     fetch(location.href, {cache: "no-store"}).then(function(r){ return r.text(); }).then(function(html){
       var match = html.match(/<meta name="app-build" content="([^"]+)">/);
-      if (match && match[1] !== CURRENT_BUILD) location.reload();
+      if (match && match[1] !== CURRENT_BUILD && !isEditing()) location.reload();
     }).catch(function(){});
   }
   document.addEventListener("visibilitychange", function(){
