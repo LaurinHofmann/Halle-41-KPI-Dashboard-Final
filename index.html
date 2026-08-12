@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260811101204">
+<meta name="app-build" content="20260812110455">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -20,7 +20,8 @@
   document.addEventListener("visibilitychange", function(){
     if (document.visibilityState === "visible") checkForUpdate();
   });
-  setInterval(checkForUpdate, 5 * 60 * 1000);
+  checkForUpdate();
+  setInterval(checkForUpdate, 2 * 60 * 1000);
 })();
 </script>
 
