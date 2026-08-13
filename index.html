@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260812164227">
+<meta name="app-build" content="20260813073012">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -52,6 +52,7 @@ body:not(.role-admin) #m3-btn-manual,
 body:not(.role-admin) #m4-btn-manual,
 body:not(.role-admin) #m5-btn-manual,
 body:not(.role-admin) #m6-btn-manual,
+body:not(.role-admin) #m11-btn-manual,
 body:not(.role-admin) .admin-only{display:none!important}
 body.role-fachlicher-leiter .ht-bl{display:none!important}
 body:not(.role-admin) .ht-admin{display:none!important}
@@ -1150,7 +1151,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div id="m10-excel-preview" style="font-size:12px;min-height:16px;margin-bottom:8px;color:#16a34a"></div>
     <div style="display:flex;gap:8px">
       <button onclick="processM10Excel()" style="padding:7px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Importieren</button>
-      <button onclick="if(confirm('Alle hochgeladenen Scorecard-Daten löschen?')){localStorage.removeItem('h41_m10_data');renderM10();}" style="padding:7px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;cursor:pointer;color:#6b7280">Zurücksetzen</button>
+      <button onclick="if(confirm('Alle hochgeladenen Scorecard-Daten löschen?')){localStorage.setItem('h41_m10_data','[]');h41SyncRaw('h41_m10_data');renderM10();}" style="padding:7px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;cursor:pointer;color:#6b7280">Zurücksetzen</button>
     </div>
   </div>
 </div>
@@ -1162,6 +1163,27 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="display:block;margin-top:8px;color:#0c4a6e;line-height:1.8"><strong>Was du siehst:</strong> Absagequote % und Online-Buchungsquote % pro Therapeut — monatlich, Zürich &amp; Kloten. Filterbar über den Standort-Filter oben.<br><strong>Warum wichtig:</strong> Zeigt, welche Therapeuten überdurchschnittlich viele Absagen haben oder wenig Online-Buchungen generieren.<br><strong>Schwellwerte:</strong> Absage ≥20% rot · 12–20% orange · &lt;12% grün &nbsp;|&nbsp; Online ≥30% grün · 15–30% orange · &lt;15% rot<br><strong>Datenstand:</strong> Cenplex-Export Jan–Mai 2026 · nur Therapeuten mit ≥20 Terminen im Zeitraum</div>
   </div>
   <div class="mod-kpis" id="m11-kpis"></div>
+  <div class="mod-toolbar">
+    <button id="m11-btn-manual" onclick="toggleM11Form()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Manuell erfassen</button>
+  </div>
+  <div id="m11-entry-form" class="entry-form">
+    <h4>Patientenübersicht manuell erfassen</h4>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="entry-field"><label>Monat</label><input type="month" id="m11-month" style="width:100%;border:1.5px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit"></div>
+      <div class="entry-field"><label>Standort</label><select id="m11-loc" style="width:100%;border:1.5px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit"><option value="Zürich">Zürich</option><option value="Kloten">Kloten</option></select></div>
+      <div class="entry-field"><label>Therapeut (Vorname)</label><input type="text" id="m11-therapist" placeholder="Name" style="width:100%;border:1.5px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit"></div>
+    </div>
+    <div class="entry-grid">
+      <div class="entry-field"><label>Anzahl Termine</label><input type="number" id="m11-total" placeholder="0" min="0"></div>
+      <div class="entry-field"><label>Absagen</label><input type="number" id="m11-abs" placeholder="0" min="0"></div>
+      <div class="entry-field"><label>Online-Buchungen</label><input type="number" id="m11-online" placeholder="0" min="0"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="saveM11Entry()" style="padding:7px 16px;border-radius:6px;border:none;background:#111827;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Speichern</button>
+      <button onclick="toggleM11Form()" style="padding:7px 16px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:13px;cursor:pointer">Abbrechen</button>
+      <span id="m11manual-autosave-msg" style="font-size:11px;color:#9ca3af;align-self:center"></span>
+    </div>
+  </div>
   <div id="m11-content"></div>
 </div>
 
@@ -2348,8 +2370,8 @@ function saveModData(key, data, mergeInfo) {
 }
 
 /* ===================== FIREBASE SYNC (Phase 1: m2-m6) — Anbindung ===================== */
-var H41_SYNC_KEYS = ['m2','m3','m4','m5','m6'];
-var H41_KEY_FIELDS = { m2:['month','location'], m3:['month','location'], m4:['month','location'], m5:['month','location'], m6:['month','location','therapist'] };
+var H41_SYNC_KEYS = ['m2','m3','m4','m5','m6','m11manual'];
+var H41_KEY_FIELDS = { m2:['month','location'], m3:['month','location'], m4:['month','location'], m5:['month','location'], m6:['month','location','therapist'], m11manual:['m','loc','t'] };
 var _h41SyncStatus = {}; // key -> 'ok' | 'error' | 'pending'
 var _h41SyncSuppressUntil = {}; // key -> timestamp, vermeidet Render-Loop direkt nach eigenem Schreiben
 
@@ -2381,6 +2403,7 @@ function markSyncStatus(key, status) {
   }
 }
 
+var H41_RENDER_KEY_OVERRIDE = { m11manual: 'm11' };
 function initH41Sync() {
   if (!window.H41Sync) return;
   H41_SYNC_KEYS.forEach(function(key){
@@ -2392,7 +2415,7 @@ function initH41Sync() {
       var incoming = JSON.stringify(records);
       if (incoming === localStorage.getItem('h41_'+key+'_data')) return; // keine echte Änderung
       localStorage.setItem('h41_'+key+'_data', incoming);
-      renderMod(key);
+      renderMod(H41_RENDER_KEY_OVERRIDE[key] || key);
       updateHomeTiles();
       markSyncStatus(key, 'ok');
     });
@@ -2416,7 +2439,7 @@ if (window.H41Sync) initH41Sync();
 else window.addEventListener('h41sync-loaded', initH41Sync, {once:true});
 
 /* ===================== FIREBASE SYNC (Phase 2: Zuweiser-Monitor, Auslastung, Weisse Fläche, Einstellungen) ===================== */
-var H41_SYNC_RAW_KEYS = ['h41_visits','h41_merges','h41_notes','h41_auslastung_uploaded','h41_weiss_manual','h41_arbeitstage','h41_mass_months'];
+var H41_SYNC_RAW_KEYS = ['h41_visits','h41_merges','h41_notes','h41_auslastung_uploaded','h41_weiss_manual','h41_arbeitstage','h41_mass_months','h41_m10_data'];
 var H41_RAW_RENDER = {
   h41_visits: function(){ if (typeof render==='function') render(); },
   h41_merges: function(){ if (typeof render==='function') render(); },
@@ -2424,7 +2447,8 @@ var H41_RAW_RENDER = {
   h41_auslastung_uploaded: function(){ renderMod('m13'); },
   h41_weiss_manual: function(){ if (typeof renderM13WeissForm==='function') renderM13WeissForm(); renderMod('m13'); },
   h41_arbeitstage: function(){ if (typeof currentView!=='undefined' && currentView && currentView.startsWith('m')) renderMod(currentView); },
-  h41_mass_months: function(){ if (typeof currentView!=='undefined' && currentView && currentView.startsWith('m')) renderMod(currentView); }
+  h41_mass_months: function(){ if (typeof currentView!=='undefined' && currentView && currentView.startsWith('m')) renderMod(currentView); },
+  h41_m10_data: function(){ renderMod('m10'); }
 };
 function h41SyncRaw(lsKey) {
   if (H41_SYNC_RAW_KEYS.indexOf(lsKey) === -1) return;
@@ -2453,7 +2477,8 @@ var AUTOSAVE_FORMS = {
   'm3-entry-form':  function(){ saveM3Entry(true); },
   'm4-entry-form':  function(){ saveM4Entry(true); },
   'm5-entry-form':  function(){ saveM5Entry(true); },
-  'm6-entry-form':  function(){ saveM6Entry(true); }
+  'm6-entry-form':  function(){ saveM6Entry(true); },
+  'm11-entry-form': function(){ saveM11Entry(true); }
 };
 var _autosaveTimers = {};
 function _handleAutosaveEvent(e) {
@@ -4087,6 +4112,7 @@ function processM10Excel() {
         if(therapist.trim().length>2){filtered.push({therapist,location,month,termine,revenue,therapyRev,mttRev});added++;}
       }
       localStorage.setItem('h41_m10_data',JSON.stringify(filtered));
+      h41SyncRaw('h41_m10_data');
       prev.textContent='✓ '+added+' Therapeuten für '+month+' importiert';
       prev.style.color='#16a34a';
       renderM10();updateHomeTiles();
@@ -4103,7 +4129,8 @@ function toggleM11Sort(col){
 }
 function renderM11() {
   var locMap = {'Zuerich':'Zürich','Kloten':'Kloten'};
-  var filtered = gLoc==='all' ? PAT_RAW : PAT_RAW.filter(function(r){ return r.loc===locMap[gLoc]; });
+  var allM11 = PAT_RAW.concat(loadModData('m11manual'));
+  var filtered = gLoc==='all' ? allM11 : allM11.filter(function(r){ return r.loc===locMap[gLoc]; });
   var kpis=document.getElementById('m11-kpis'), content=document.getElementById('m11-content');
   if(!filtered.length){ kpis.innerHTML=''; content.innerHTML=modEmpty('m11'); return; }
 
@@ -5004,6 +5031,26 @@ function saveM6Entry(silent) {
   saveModData('m6', data.sort((a,b)=>a.month.localeCompare(b.month)), {upsert:{entry:entry}});
   if (silent) { markAutosaved('m6-autosave-msg'); return; }
   toggleM6Form(); renderMod('m6'); updateHomeTiles();
+}
+
+function toggleM11Form() { document.getElementById('m11-entry-form').classList.toggle('vis'); }
+function saveM11Entry(silent) {
+  const m=document.getElementById('m11-month').value;
+  const loc=document.getElementById('m11-loc').value;
+  const t=document.getElementById('m11-therapist').value.trim();
+  if (!m) { if(!silent) alert('Bitte Monat wählen.'); return; }
+  if (silent && !t) return;
+  const entry={m,loc,t,
+    total:parseFloat(document.getElementById('m11-total').value)||0,
+    abs:parseFloat(document.getElementById('m11-abs').value)||0,
+    online:parseFloat(document.getElementById('m11-online').value)||0
+  };
+  const data=loadModData('m11manual');
+  const idx=data.findIndex(r=>r.m===m&&r.loc===loc&&r.t===t);
+  if (idx>=0) data[idx]=entry; else data.push(entry);
+  saveModData('m11manual', data.sort((a,b)=>a.m.localeCompare(b.m)), {upsert:{entry:entry}});
+  if (silent) { markAutosaved('m11manual-autosave-msg'); return; }
+  toggleM11Form(); renderMod('m11'); updateHomeTiles();
 }
 
 
