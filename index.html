@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260813073012">
+<meta name="app-build" content="20260813095225">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -282,9 +282,12 @@ async function h41Sha256(str){
     if (!db || !localRecords || !localRecords.length) return false;
     await authReady;
     var ref = doc(db, 'modules', key);
-    var snap = await getDoc(ref);
-    if (!snap.exists()) { await setDoc(ref, { records: localRecords, updatedAt: Date.now() }); return true; }
-    return false;
+    var seeded = false;
+    await runTransaction(db, async function(tx){
+      var snap = await tx.get(ref);
+      if (!snap.exists()) { tx.set(ref, { records: localRecords, updatedAt: Date.now() }); seeded = true; }
+    });
+    return seeded;
   }
 
   // Generische "Rohwert"-Synchronisation (Phase 2): ein Firestore-Dokument pro localStorage-Key,
@@ -309,9 +312,12 @@ async function h41Sha256(str){
     if (!db || localJsonString == null) return false;
     await authReady;
     var ref = doc(db, 'raw', key);
-    var snap = await getDoc(ref);
-    if (!snap.exists()) { await setDoc(ref, { value: localJsonString, updatedAt: Date.now() }); return true; }
-    return false;
+    var seeded = false;
+    await runTransaction(db, async function(tx){
+      var snap = await tx.get(ref);
+      if (!snap.exists()) { tx.set(ref, { value: localJsonString, updatedAt: Date.now() }); seeded = true; }
+    });
+    return seeded;
   }
 
   window.H41Sync = { ready: authReady, subscribe: subscribeModule, upsert: upsertRecord, replaceAll: replaceAll, seedIfEmpty: seedIfEmpty,
@@ -2378,6 +2384,7 @@ var _h41SyncSuppressUntil = {}; // key -> timestamp, vermeidet Render-Loop direk
 function scheduleCloudSync(key, data, mergeInfo) {
   if (!window.H41Sync) { markSyncStatus(key, 'error'); return; }
   markSyncStatus(key, 'pending');
+  _h41SyncSuppressUntil[key] = Date.now() + 15000; // Echo-Schutz läuft schon während des Schreibvorgangs, nicht erst danach
   var p = (mergeInfo && mergeInfo.upsert)
     ? window.H41Sync.upsert(key, mergeInfo.upsert.entry, H41_KEY_FIELDS[key])
     : window.H41Sync.replaceAll(key, data);
@@ -2386,6 +2393,7 @@ function scheduleCloudSync(key, data, mergeInfo) {
     markSyncStatus(key, 'ok');
   }).catch(function(err){
     console.warn('H41Sync: Schreiben fehlgeschlagen für', key, err);
+    _h41SyncSuppressUntil[key] = 0;
     markSyncStatus(key, 'error');
   });
 }
@@ -2409,8 +2417,9 @@ function initH41Sync() {
   H41_SYNC_KEYS.forEach(function(key){
     var local = (function(){ try { return JSON.parse(localStorage.getItem('h41_'+key+'_data')||'[]'); } catch(e){ return []; } })();
     window.H41Sync.seedIfEmpty(key, local).catch(function(){});
-    window.H41Sync.subscribe(key, function(records){
+    window.H41Sync.subscribe(key, function(records, hasPendingWrites){
       if (records === null) return; // Dokument existiert noch nicht (Seed läuft evtl. gerade)
+      if (hasPendingWrites) return; // nur auf serverbestätigte Schreibungen reagieren, nie auf den optimistischen Zwischenstand
       if (_h41SyncSuppressUntil[key] && Date.now() < _h41SyncSuppressUntil[key]) return; // Echo der eigenen Schreibung
       var incoming = JSON.stringify(records);
       if (incoming === localStorage.getItem('h41_'+key+'_data')) return; // keine echte Änderung
@@ -2423,8 +2432,9 @@ function initH41Sync() {
   H41_SYNC_RAW_KEYS.forEach(function(lsKey){
     var local = localStorage.getItem(lsKey);
     window.H41Sync.seedRawIfEmpty(lsKey, local).catch(function(){});
-    window.H41Sync.subscribeRaw(lsKey, function(value){
+    window.H41Sync.subscribeRaw(lsKey, function(value, hasPendingWrites){
       if (value === null) return; // Dokument existiert noch nicht (Seed läuft evtl. gerade)
+      if (hasPendingWrites) return; // nur auf serverbestätigte Schreibungen reagieren, nie auf den optimistischen Zwischenstand
       if (_h41SyncSuppressUntil[lsKey] && Date.now() < _h41SyncSuppressUntil[lsKey]) return; // Echo der eigenen Schreibung
       if (value === localStorage.getItem(lsKey)) return; // keine echte Änderung
       localStorage.setItem(lsKey, value);
@@ -2454,11 +2464,13 @@ function h41SyncRaw(lsKey) {
   if (H41_SYNC_RAW_KEYS.indexOf(lsKey) === -1) return;
   if (!window.H41Sync) { markSyncStatus(lsKey, 'error'); return; }
   markSyncStatus(lsKey, 'pending');
+  _h41SyncSuppressUntil[lsKey] = Date.now() + 15000; // Echo-Schutz läuft schon während des Schreibvorgangs, nicht erst danach
   window.H41Sync.replaceRaw(lsKey, localStorage.getItem(lsKey)).then(function(){
     _h41SyncSuppressUntil[lsKey] = Date.now() + 3000;
     markSyncStatus(lsKey, 'ok');
   }).catch(function(err){
     console.warn('H41Sync: Raw-Schreiben fehlgeschlagen für', lsKey, err);
+    _h41SyncSuppressUntil[lsKey] = 0;
     markSyncStatus(lsKey, 'error');
   });
 }
