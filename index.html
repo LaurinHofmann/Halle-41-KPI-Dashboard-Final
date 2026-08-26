@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260826141820">
+<meta name="app-build" content="20260826143334">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -961,6 +961,7 @@ td{padding:8px 12px;vertical-align:middle}
     <button id="m2-btn-manual" onclick="toggleM2Form()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Manuell erfassen</button>
     <button class="mod-excel-btn" onclick="openModExcel('m2')">📤 Excel hochladen</button>
     <button onclick="toggleM2Targets()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">🎯 Zielwerte</button>
+    <button onclick="openQuartalM2()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📊 Quartal-Vergleich</button>
     <div id="m2-targets-row" class="target-row" style="display:none">
       Ziel/Monat Zürich: <input type="number" class="target-input" id="m2-target-zh" placeholder="z.B. 120000" onchange="saveTarget('m2','Zuerich',this.value)">
       Kloten: <input type="number" class="target-input" id="m2-target-kl" placeholder="z.B. 80000" onchange="saveTarget('m2','Kloten',this.value)">
@@ -1002,6 +1003,7 @@ td{padding:8px 12px;vertical-align:middle}
     <button id="m3-btn-manual" onclick="toggleM3Form()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Manuell erfassen</button>
     <button class="mod-excel-btn" onclick="openModExcel('m3')">📤 Excel hochladen</button>
     <button onclick="toggleM3Targets()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">🎯 Zielwerte</button>
+    <button onclick="openQuartalM3()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📊 Quartal-Vergleich</button>
     <div id="m3-targets-row" class="target-row" style="display:none">
       Ziel Ersttermine/Mo Zürich: <input type="number" class="target-input" id="m3-target-zh" placeholder="z.B. 60" onchange="saveTarget('m3','Zuerich',this.value)">
       Kloten: <input type="number" class="target-input" id="m3-target-kl" placeholder="z.B. 40" onchange="saveTarget('m3','Kloten',this.value)">
@@ -1036,6 +1038,7 @@ td{padding:8px 12px;vertical-align:middle}
   <div class="mod-toolbar">
     <button id="m4-btn-manual" onclick="toggleM4Form()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Manuell erfassen</button>
     <button class="mod-excel-btn" onclick="openModExcel('m4')">📤 Excel hochladen</button>
+    <button onclick="openQuartalM4()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📊 Quartal-Vergleich</button>
   </div>
   <div id="m4-entry-form" class="entry-form">
     <h4>MTT-Daten manuell erfassen</h4>
@@ -1069,6 +1072,7 @@ td{padding:8px 12px;vertical-align:middle}
   <div class="mod-toolbar">
     <button id="m5-btn-manual" onclick="toggleM5Form()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Manuell erfassen</button>
     <button class="mod-excel-btn" onclick="openModExcel('m5')">📤 Excel hochladen</button>
+    <button onclick="openQuartalM5()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📊 Quartal-Vergleich</button>
   </div>
   <div id="m5-entry-form" class="entry-form">
     <h4>UVG-Daten manuell erfassen</h4>
@@ -1100,6 +1104,7 @@ td{padding:8px 12px;vertical-align:middle}
   <div class="mod-toolbar">
     <button id="m6-btn-manual" onclick="toggleM6Form()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Manuell erfassen</button>
     <button class="mod-excel-btn" onclick="openModExcel('m6')">📤 Excel hochladen</button>
+    <button onclick="openQuartalM6()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📊 Quartal-Vergleich</button>
   </div>
   <div id="m6-entry-form" class="entry-form">
     <h4>Therapeuten-Daten manuell erfassen</h4>
@@ -1143,6 +1148,7 @@ td{padding:8px 12px;vertical-align:middle}
     <button onclick="setM10Month('2026-04',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">April</button>
     <button onclick="setM10Month('2026-05',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Mai</button>
     <button onclick="setM10Month('2026-06',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Juni</button>
+    <button onclick="openQuartalM10()" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;margin-left:auto">📊 Quartal-Vergleich</button>
   </div>
   <div class="mod-kpis" id="m10-kpis"></div>
   <div id="m10-content"></div>
@@ -1171,6 +1177,7 @@ td{padding:8px 12px;vertical-align:middle}
   <div class="mod-kpis" id="m11-kpis"></div>
   <div class="mod-toolbar">
     <button id="m11-btn-manual" onclick="toggleM11Form()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Manuell erfassen</button>
+    <button onclick="openQuartalM11()" style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📊 Quartal-Vergleich</button>
   </div>
   <div id="m11-entry-form" class="entry-form">
     <h4>Patientenübersicht manuell erfassen</h4>
@@ -1269,6 +1276,7 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="margin-left:auto;display:flex;gap:8px">
       <button class="admin-only" onclick="var w=document.getElementById('m13-upload-wrap');var isOpen=w.style.display!=='none';w.style.display=isOpen?'none':'block';if(!isOpen)document.getElementById('m13-weiss-wrap').style.display='none';" style="padding:5px 14px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📤 Cenplex hochladen</button>
       <button class="weiss-entry" onclick="toggleM13WeissForm()" style="padding:5px 14px;border-radius:6px;border:1.5px solid #374151;background:#fff;color:#374151;font-size:12.5px;font-weight:600;cursor:pointer">✏️ Weisse Fläche</button>
+      <button onclick="openQuartalM13()" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📊 Quartal-Vergleich</button>
     </div>
   </div>
   <div id="m13-upload-wrap" class="entry-form admin-only" style="margin:0 28px;display:none">
@@ -1300,6 +1308,18 @@ td{padding:8px 12px;vertical-align:middle}
   </div>
   <div class="mod-kpis" id="m13-kpis"></div>
   <div id="m13-content"></div>
+</div>
+
+<!-- ===== QUARTALSVERGLEICH MODAL ===== -->
+<div id="quartal-modal" class="modal-overlay">
+  <div class="modal-box" style="max-width:640px;width:92%">
+    <h3 id="quartal-title">📊 Quartalsvergleich</h3>
+    <div style="height:220px;margin-bottom:16px"><canvas id="quartal-chart"></canvas></div>
+    <div id="quartal-table" style="max-height:320px;overflow-y:auto"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn-cancel" onclick="document.getElementById('quartal-modal').classList.remove('vis')">Schliessen</button>
+    </div>
+  </div>
 </div>
 
 <!-- ===== MODULE EXCEL MODAL ===== -->
@@ -2624,6 +2644,120 @@ function destroyModChart(id) {
 function mkChart(id, cfg) {
   destroyModChart(id);
   modCharts[id] = new Chart(document.getElementById(id).getContext('2d'), cfg);
+}
+
+/* ===================== QUARTALSVERGLEICH (generisch für alle Module) ===================== */
+function getQuarterInfo(monthStr) {
+  var parts = String(monthStr).split('-');
+  var y = parseInt(parts[0], 10), mo = parseInt(parts[1], 10);
+  var q = Math.ceil(mo / 3);
+  return { key: y + ' Q' + q, sortKey: y * 10 + q };
+}
+function computeQuarterlySeries(records, monthField, valueField, agg, locFilterFn) {
+  var byQ = {};
+  records.forEach(function(r){
+    if (locFilterFn && !locFilterFn(r)) return;
+    var m = r[monthField]; if (!m) return;
+    var v = r[valueField]; if (typeof v !== 'number' || isNaN(v)) return;
+    var qi = getQuarterInfo(m);
+    if (!byQ[qi.key]) byQ[qi.key] = { label: qi.key, sortKey: qi.sortKey, sum: 0, count: 0 };
+    byQ[qi.key].sum += v; byQ[qi.key].count++;
+  });
+  var arr = Object.values(byQ).sort(function(a,b){ return a.sortKey - b.sortKey; });
+  arr.forEach(function(e){ e.value = (agg === 'avg' && e.count > 0) ? e.sum / e.count : e.sum; });
+  return arr;
+}
+function openQuartalVergleich(opts) {
+  var series = (opts.locations && opts.locations.length)
+    ? opts.locations.map(function(loc){ return { label: loc.label, data: computeQuarterlySeries(opts.records, opts.monthField, opts.valueField, opts.agg, loc.filter) }; })
+    : [{ label: opts.title, data: computeQuarterlySeries(opts.records, opts.monthField, opts.valueField, opts.agg, null) }];
+
+  document.getElementById('quartal-title').textContent = '📊 Quartalsvergleich — ' + opts.title;
+
+  var fmt = opts.format === 'chf' ? function(v){ return chf(v, 0); }
+          : opts.format === 'pct' ? function(v){ return v.toFixed(1) + '%'; }
+          : function(v){ return Math.round(v).toLocaleString('de-CH'); };
+  var better = opts.betterWhen || 'up';
+
+  var allLabels = [...new Set(series.reduce(function(acc, s){ return acc.concat(s.data.map(function(d){ return d.label; })); }, []))]
+    .sort(function(a,b){
+      var pa = a.split(' Q'), pb = b.split(' Q');
+      return (parseInt(pa[0])*10+parseInt(pa[1])) - (parseInt(pb[0])*10+parseInt(pb[1]));
+    });
+  var palette = ['#3b82f6','#f59e0b','#10b981','#8b5cf6'];
+  mkChart('quartal-chart', {
+    type: 'bar',
+    data: {
+      labels: allLabels,
+      datasets: series.map(function(s, i){
+        var map = {}; s.data.forEach(function(d){ map[d.label] = d.value; });
+        return { label: s.label, data: allLabels.map(function(l){ return map[l] != null ? map[l] : null; }), backgroundColor: palette[i % palette.length] };
+      })
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: series.length > 1 } }, scales: { y: { beginAtZero: true } } }
+  });
+
+  function deltaHtml(cur, prev) {
+    if (!prev || !prev.value) return '<span style="color:#9ca3af">–</span>';
+    var pct = (cur.value - prev.value) / Math.abs(prev.value) * 100;
+    var isGood = better === 'up' ? pct >= 0 : pct <= 0;
+    var color = pct === 0 ? '#6b7280' : (isGood ? '#16a34a' : '#dc2626');
+    var arrow = pct > 0 ? '↑' : pct < 0 ? '↓' : '→';
+    return '<span style="color:'+color+';font-weight:700">'+arrow+' '+(pct>=0?'+':'')+pct.toFixed(1)+'%</span>';
+  }
+  var html = '';
+  series.forEach(function(s){
+    if (!s.data.length) return;
+    html += '<div style="margin-bottom:14px">';
+    if (series.length > 1) html += '<div style="font-weight:700;font-size:12.5px;margin-bottom:6px;color:#374151">'+s.label+'</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:12.5px">'
+      + '<thead><tr style="border-bottom:1.5px solid #e5e7eb">'
+      + '<th style="text-align:left;padding:5px 8px;color:#6b7280;font-weight:600">Quartal</th>'
+      + '<th style="text-align:right;padding:5px 8px;color:#6b7280;font-weight:600">Wert</th>'
+      + '<th style="text-align:right;padding:5px 8px;color:#6b7280;font-weight:600">Ggü. Vorquartal</th>'
+      + '<th style="text-align:right;padding:5px 8px;color:#6b7280;font-weight:600">Ggü. Vorjahr</th>'
+      + '</tr></thead><tbody>';
+    s.data.forEach(function(d, i){
+      var prevQ = s.data[i-1];
+      var prevYear = s.data.find(function(x){ return x.sortKey === d.sortKey - 10; });
+      var isLast = i === s.data.length - 1;
+      html += '<tr style="border-bottom:1px solid #f3f4f6'+(isLast?';background:#f9fafb':'')+'">'
+        + '<td style="padding:6px 8px;font-weight:'+(isLast?'700':'500')+'">'+d.label+'</td>'
+        + '<td style="padding:6px 8px;text-align:right;font-weight:600">'+fmt(d.value)+'</td>'
+        + '<td style="padding:6px 8px;text-align:right">'+deltaHtml(d, prevQ)+'</td>'
+        + '<td style="padding:6px 8px;text-align:right">'+deltaHtml(d, prevYear)+'</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  });
+  document.getElementById('quartal-table').innerHTML = html || '<p style="color:#9ca3af;font-size:12.5px">Keine Daten vorhanden.</p>';
+  document.getElementById('quartal-modal').classList.add('vis');
+}
+
+function qvBtn(fn) {
+  return '<button onclick="'+fn+'" style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">📊 Quartal-Vergleich</button>';
+}
+function qvLocSplit(locFieldName) {
+  return [
+    { label: 'Zürich', filter: function(r){ var l = r[locFieldName]; return l === 'Zuerich' || l === 'Zürich'; } },
+    { label: 'Kloten', filter: function(r){ return r[locFieldName] === 'Kloten'; } }
+  ];
+}
+function openQuartalM2() { openQuartalVergleich({ title:'Gesamtumsatz', records: loadModData('m2'), monthField:'month', valueField:'total', agg:'sum', format:'chf', betterWhen:'up', locations: qvLocSplit('location') }); }
+function openQuartalM3() { openQuartalVergleich({ title:'Ersttermine', records: loadModData('m3'), monthField:'month', valueField:'ersttermine', agg:'sum', format:'num', betterWhen:'up', locations: qvLocSplit('location') }); }
+function openQuartalM4() { openQuartalVergleich({ title:'MTT-Umsatz', records: loadModData('m4'), monthField:'month', valueField:'revenue', agg:'sum', format:'chf', betterWhen:'up', locations: qvLocSplit('location') }); }
+function openQuartalM5() { openQuartalVergleich({ title:'UVG-Termine', records: loadModData('m5'), monthField:'month', valueField:'termine', agg:'sum', format:'num', betterWhen:'up', locations: qvLocSplit('location') }); }
+function openQuartalM6() { openQuartalVergleich({ title:'Therapeuten-Umsatz', records: loadModData('m6'), monthField:'month', valueField:'revenue', agg:'sum', format:'chf', betterWhen:'up', locations: qvLocSplit('location') }); }
+function openQuartalM10() { openQuartalVergleich({ title:'Scorecard-Umsatz', records: loadModData('m10'), monthField:'month', valueField:'revenue', agg:'sum', format:'chf', betterWhen:'up', locations: qvLocSplit('location') }); }
+function openQuartalM11() { openQuartalVergleich({ title:'Absagequote', records: PAT_RAW.concat(loadModData('m11manual')).map(function(r){ return { m:r.m, loc:r.loc, absRate: r.total>0 ? r.abs/r.total*100 : null }; }).filter(function(r){ return r.absRate!=null; }), monthField:'m', valueField:'absRate', agg:'avg', format:'pct', betterWhen:'down', locations: qvLocSplit('loc') }); }
+function openQuartalM13() {
+  var recs = getAuslastungAllData().filter(function(r){ return r.geplant>0; }).map(function(r){
+    var eff = Math.max(0, r.geplant - r.admin - r.allgemein);
+    var weiss = getWeissForPerson(r.vorname, r.nachname, r.month, r.loc);
+    var aus = (eff>0 && weiss!=null) ? eff/(eff+weiss)*100 : null;
+    return { month: r.month, loc: r.loc, aus: aus };
+  }).filter(function(r){ return r.aus!=null; });
+  openQuartalVergleich({ title:'Auslastung', records: recs, monthField:'month', valueField:'aus', agg:'avg', format:'pct', betterWhen:'up', locations: qvLocSplit('loc') });
 }
 
 /* ===================== MODULE 2 – GESAMTUMSATZ ===================== */
