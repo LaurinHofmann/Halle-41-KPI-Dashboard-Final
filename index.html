@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260826140602">
+<meta name="app-build" content="20260826141820">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -1867,14 +1867,15 @@ function updateHomeTiles() {
     ht12.className='ht-kv'; ht12.style.color=pos?'#16a34a':'#ef4444';
     ht12.textContent=(pos?'+':'')+pct+'% Umsatz '+(pos?'↑':'↓');
   }
-  // m13: Auslastung tile — aktuellster Monat aus AUSLASTUNG_CENPLEX
+  // m13: Auslastung tile — aktuellster Monat aus allen Daten (Cenplex-Basis + Live-Uploads)
   var ht13=document.getElementById('ht13-kv');
-  if(ht13 && typeof AUSLASTUNG_CENPLEX!=='undefined'){
-    var allM13=[...new Set(AUSLASTUNG_CENPLEX.map(function(r){return r.month;}))].sort();
+  if(ht13 && typeof getAuslastungAllData==='function'){
+    var allM13Data=getAuslastungAllData();
+    var allM13=[...new Set(allM13Data.map(function(r){return r.month;}))].sort();
     var latestM13=allM13[allM13.length-1]||'';
     if(latestM13){
       var latestMo13=parseInt(latestM13.split('-')[1])-1;
-      var d13=AUSLASTUNG_CENPLEX.filter(function(r){return r.month===latestM13&&r.geplant>0;});
+      var d13=allM13Data.filter(function(r){return r.month===latestM13&&r.geplant>0;});
       function calcAvg13(arr){
         var vals=arr.map(function(r){
           var eff=Math.max(0,r.geplant-r.admin-r.allgemein);
