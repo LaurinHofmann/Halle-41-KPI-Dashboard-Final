@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260813095225">
+<meta name="app-build" content="20260826140602">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -5801,13 +5801,14 @@ const AUSLASTUNG_LOC_MAP = {
   'post':'Kloten','goncalves':'Kloten','mader':'Kloten','wimberska':'Kloten',
   'crameri':'Kloten','buchschacher':'Kloten','jurovicova':'Kloten',
   'müller':'Kloten','muller':'Kloten','hirter':'Kloten','haller':'Zuerich',
+  'villiger':'Kloten',
 };
 
 // Personen komplett ausgeblendet (kein Kalender-Tracking)
-const AUSLASTUNG_EXCLUDE_NN = new Set(['Crameri','März','Schälin','Buchschacher']);
+const AUSLASTUNG_EXCLUDE_NN = new Set(['Crameri','März','Schälin','Buchschacher','Jarosch']);
 
 // Nachname → Rolle für nicht-bonusrelevante Personen (kein Umsatzmodell)
-const AUSLASTUNG_NON_BONUS = {'Buchschacher':'Masseur','Hirter':'Student','Muncan':'Masseur'};
+const AUSLASTUNG_NON_BONUS = {'Buchschacher':'Masseur','Hirter':'Student','Muncan':'Masseur','Villiger':'Student'};
 
 var m13ViewMode = 'alle';
 function setM13Mode(mode) {
