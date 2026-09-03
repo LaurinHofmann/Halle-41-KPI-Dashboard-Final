@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260903141638">
+<meta name="app-build" content="20260903160753">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -937,15 +937,6 @@ td{padding:8px 12px;vertical-align:middle}
       <div class="ht-dsc">Absage- & Online-Buchungsquote pro Therapeut · monatlich · Zürich & Kloten</div>
       <div id="ht11-kv" class="ht-nd"></div>
     </div>
-    <!-- ── Strategie ── -->
-    <div class="ht ht-bl ht-admin" onclick="enterMod('m12','⚖️ Tarifvergleich 2027')">
-      <span class="ht-exists">Aktiv</span>
-      <div class="ht-ico">⚖️</div>
-      <div class="ht-tit">Tarifvergleich 2027</div>
-      <div class="ht-dsc">Alt (7301/7311) vs. Neu (27110) — CHF-Impact & Szenarien mit Taxpunktwert-Slider</div>
-      <div id="ht12-kv" class="ht-kv" style="color:#ef4444"></div>
-    </div>
-
   </div>
 </div>
 
@@ -1189,36 +1180,6 @@ td{padding:8px 12px;vertical-align:middle}
     </div>
   </div>
   <div id="m11-content"></div>
-</div>
-
-<!-- ===== MODULE 12: TARIFVERGLEICH 2027 ===== -->
-<div id="view-m12" style="display:none">
-  <div style="margin:12px 28px 4px;padding:11px 14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;font-size:12px">
-    <div style="font-weight:700;color:#92400e;margin-bottom:4px">⚖️ Tarifvergleich KVG — Alter Tarif vs. Neuer Tarif ab 01.01.2027</div>
-    <div style="color:#78350f;line-height:1.7">
-      <strong>Datenbasis:</strong> Sumex-Export 01.01.2026–31.05.2026 · Zürich + Kloten · 8'070 Physio- + 3'468 MTT-Behandlungen &nbsp;|&nbsp;
-      <strong>Alter Tarif (fix CHF 1.11/TP):</strong> 7301 = 48 TP · 7311 = 77 TP · 7350 = 24 TP · 7340 MTT = 22 TP &nbsp;|&nbsp;
-      <strong>Neuer Tarif (ab 2027, Slider):</strong> 27110 = 7.36 TP/5 Min (Physio) · 27320 = 27.93 TP/Sitzung (MTT) · 7350 entfällt
-    </div>
-  </div>
-  <!-- Slider -->
-  <div class="mod-toolbar" style="gap:16px;flex-wrap:wrap;align-items:center">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div>
-        <div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">Neuer Taxpunktwert 2027</div>
-        <span style="font-size:22px;font-weight:800;color:#111827;white-space:nowrap">CHF&nbsp;<span id="t12-tpw-disp">1.11</span></span>
-      </div>
-      <div style="font-size:11px;color:#6b7280;padding-left:8px;border-left:2px solid #e5e7eb">Alter TP-Wert:<br><strong style="color:#374151">CHF 1.11 (fix)</strong></div>
-    </div>
-    <input type="range" min="0.80" max="1.50" step="0.01" value="1.11" id="t12-slider"
-           style="width:220px;accent-color:#111827;cursor:pointer"
-           oninput="t12Tpw=+this.value; document.getElementById('t12-tpw-disp').textContent=t12Tpw.toFixed(2); renderM12()">
-    <button onclick="t12Tpw=1.11; document.getElementById('t12-slider').value='1.11'; document.getElementById('t12-tpw-disp').textContent='1.11'; renderM12()"
-            style="padding:5px 13px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer">↺ Reset (1.11)</button>
-    <span style="font-size:11px;color:#9ca3af">Bereich: CHF 0.80 – 1.50</span>
-  </div>
-  <div class="mod-kpis" id="m12-kpis"></div>
-  <div id="m12-content"></div>
 </div>
 
 <!-- ===== MODULE 13: AUSLASTUNGSANALYSE ===== -->
@@ -1718,7 +1679,7 @@ function setGLoc(l, btn) {
 
 /* ===================== VIEW TOGGLE ===================== */
 function allModViews() {
-  return ['home','einbruch','besuche','m2','m3','m4','m5','m6','m8','m10','m11','m12','m13'];
+  return ['home','einbruch','besuche','m2','m3','m4','m5','m6','m8','m10','m11','m13'];
 }
 
 function setView(v, el) {
@@ -1758,7 +1719,7 @@ function setView(v, el) {
 function goHome() {
   activeModKey = null;
   // Explizit alle Modul-Inhalte leeren und Ansichten verstecken
-  ['m2','m3','m4','m5','m6','m8','m10','m11','m12','m13'].forEach(function(k){
+  ['m2','m3','m4','m5','m6','m8','m10','m11','m13'].forEach(function(k){
     var v=document.getElementById('view-'+k);
     if(v) v.style.display='none';
     var kp=document.getElementById(k+'-kpis');
@@ -1874,16 +1835,6 @@ function updateHomeTiles() {
   if (periodEl) periodEl.textContent = M8_ZEITRAUM;
   if (activeModKey === 'm8') renderM8();
 
-  // m12: embedded data, set tile directly
-  const ht12 = document.getElementById('ht12-kv');
-  if (ht12) {
-    const totOld = T12_MONTHLY.reduce((s,r)=>s+r.old_tp,0);
-    const totNew = T12_MONTHLY.reduce((s,r)=>s+r.new_tp,0);
-    const pct = ((totNew-totOld)/totOld*100).toFixed(1);
-    const pos  = parseFloat(pct) >= 0;
-    ht12.className='ht-kv'; ht12.style.color=pos?'#16a34a':'#ef4444';
-    ht12.textContent=(pos?'+':'')+pct+'% Umsatz '+(pos?'↑':'↓');
-  }
   // m13: Auslastung tile — aktuellster Monat aus allen Daten (Cenplex-Basis + Live-Uploads)
   var ht13=document.getElementById('ht13-kv');
   if(ht13 && typeof getAuslastungAllData==='function'){
@@ -2597,7 +2548,6 @@ function renderMod(key) {
   else if (key==='m8') renderM8();
   else if (key==='m10') renderM10();
   else if (key==='m11') renderM11();
-  else if (key==='m12') renderM12();
   else if (key==='m13') renderM13();
 
 }
@@ -5411,242 +5361,6 @@ function saveSettingsMM() {
   if (currentView && currentView.startsWith('m')) renderMod(currentView);
   updateHomeTiles();
 }
-
-/* ===================== MODULE 12 – TARIFVERGLEICH 2027 ===================== */
-
-// MTT: 3468 Sitzungen gleichmässig auf 5 Monate verteilt (kein Datum im Export)
-// Alt: 7340 = 22 TP/Sitzung | Neu: 27320 = 27.93 TP/Sitzung
-const T12_MTT_OLD_TP_PM = 15259.2;   // 3468 × 22 / 5
-const T12_MTT_NEW_TP_PM = 19372.248; // 3468 × 27.93 / 5
-
-// Ersttermin-Korrektur: 7301-Ersttermin = 2×7301+7350 = 120 TP alt (war falsch mit 72 TP)
-// Neu: CHF 87.98 je Ersttermin = 87.98/1.11 = 79.261 TP. Bereinigung Standard-7301 (-649×44.16TP)
-// Netto-Delta neue TP: (51441-34143) + (7926-5829) - 28659 = -9264, ÷5 = -1852.8 / Monat
-const T12_ET_DELTA_NEW_PM = -1852.8;
-
-const T12_MONTHLY = [
-  {month:'2026-01', old_tp:87175  +T12_MTT_OLD_TP_PM, new_tp:72805.12 +T12_MTT_NEW_TP_PM +T12_ET_DELTA_NEW_PM, count:1563+694, phy_count:1563},
-  {month:'2026-02', old_tp:80256  +T12_MTT_OLD_TP_PM, new_tp:66262.08 +T12_MTT_NEW_TP_PM +T12_ET_DELTA_NEW_PM, count:1446+694, phy_count:1446},
-  {month:'2026-03', old_tp:109223 +T12_MTT_OLD_TP_PM, new_tp:89799.36 +T12_MTT_NEW_TP_PM +T12_ET_DELTA_NEW_PM, count:1960+693, phy_count:1960},
-  {month:'2026-04', old_tp:88267  +T12_MTT_OLD_TP_PM, new_tp:72812.48 +T12_MTT_NEW_TP_PM +T12_ET_DELTA_NEW_PM, count:1583+693, phy_count:1583},
-  {month:'2026-05', old_tp:84954  +T12_MTT_OLD_TP_PM, new_tp:69103.04 +T12_MTT_NEW_TP_PM +T12_ET_DELTA_NEW_PM, count:1518+694, phy_count:1518},
-];
-
-const T12_POSITIONS = [
-  // Physiotherapie – Standard (649 zweite Ersttermin-Slots herausgelöst)
-  {group:'Physiotherapie', pos:'7301 (Standard)',               label:'27110 (Zeit-basiert)',           count:5233, old_tp:251184,  new_tp:231685.44},
-  {group:'Physiotherapie', pos:'7311 (Aufwändig)',              label:'27110 (Zeit-basiert)',           count:1432, old_tp:110264,  new_tp:70199.68},
-  // Ersttermine: alt = 2×7301+7350 (120 TP) bzw. 7311+7350 (101 TP) | neu = CHF 87.98/Sitzung
-  {group:'Ersttermin',     pos:'7301 Ersttermin (2×7301+7350)', label:'27110 · CHF 87.98/Sitzung',    count:649,  old_tp:77880,   new_tp:51441.0},
-  {group:'Ersttermin',     pos:'7311 Ersttermin (7311+7350)',   label:'27110 · CHF 87.98/Sitzung',    count:100,  old_tp:10100,   new_tp:7926.1},
-  // MTT
-  {group:'MTT',            pos:'7340 (MTT-Training)',      label:'27320 (27.93 TP/Sitzung, Pauschale)', count:3468, old_tp:76296, new_tp:96861.24},
-  // Sonstiges
-  {group:'Sonstiges',      pos:'7340+7301 (MTT+Physio)',   label:'27110 (Zeit-basiert)',  count:5,    old_tp:350,     new_tp:220.80},
-  {group:'Sonstiges',      pos:'7350 (allein)',             label:'— entfällt',            count:1,    old_tp:24,      new_tp:0},
-  {group:'Sonstiges',      pos:'Andere (7491 etc.)',        label:'27110 (Zeit-basiert)',  count:1,    old_tp:73,      new_tp:44.16},
-];
-
-let t12Tpw = 1.11;
-
-function renderM12() {
-  const newTpw   = t12Tpw;                    // neuer Taxpunktwert (Slider)
-  const oldTpw   = 1.11;                       // alter Taxpunktwert — fix
-  const totOldTP = T12_MONTHLY.reduce((s,r)=>s+r.old_tp,0);
-  const totNewTP = T12_MONTHLY.reduce((s,r)=>s+r.new_tp,0);
-  const totOld   = totOldTP * oldTpw;          // fix CHF 1.11
-  const totNew   = totNewTP * newTpw;          // variabel per Slider
-  const diffAbs  = totNew - totOld;
-  const diffPct  = diffAbs / totOld * 100;
-  const annOld   = totOld / 5 * 12;
-  const annNew   = totNew / 5 * 12;
-  const annDiff  = annNew - annOld;
-  // Break-even: alter TP × 1.11 = neuer TP × breakeven_tpw
-  const breakeven = totOldTP * oldTpw / totNewTP;
-  const diffClr  = diffAbs >= 0 ? '#16a34a' : '#ef4444';
-  const diffSign = diffAbs >= 0 ? '↑' : '↓';
-
-  // Home tile
-  const ht12 = document.getElementById('ht12-kv');
-  if (ht12) {
-    ht12.className='ht-kv'; ht12.style.color=diffClr;
-    ht12.textContent=(diffPct>=0?'+':'')+diffPct.toFixed(1)+'% Umsatz '+diffSign;
-  }
-
-  // KPIs
-  const kpiEl = document.getElementById('m12-kpis');
-  if (kpiEl) kpiEl.innerHTML =
-    mkpiHtml('','Umsatz Alter Tarif (fix)', chf(totOld,0), 'Jan–Mai 2026 · CHF 1.11/TP · 7301/7311/7350') +
-    mkpiHtml('','Umsatz Neuer Tarif', '<span style="color:'+diffClr+'">'+chf(totNew,0)+'</span>', 'ab 2027 · CHF '+newTpw.toFixed(2)+'/TP · 27110') +
-    mkpiHtml('','Differenz (5 Monate)', '<span style="color:'+diffClr+'">'+(diffAbs>=0?'+':'')+chf(diffAbs,0)+'</span>', 'vs. heutigem KVG-Umsatz') +
-    mkpiHtml('','Break-even Taxpunktwert', 'CHF '+breakeven.toFixed(3), 'ab diesem TP-Wert verdienst du gleich viel wie heute');
-
-  // Monthly rows
-  const mLabels = ['Jan 26','Feb 26','Mär 26','Apr 26','Mai 26'];
-  const months = T12_MONTHLY.map((r,i)=>({
-    lbl: mLabels[i], count: r.count,
-    raw_old_tp: r.old_tp, raw_new_tp: r.new_tp,
-    old: r.old_tp*oldTpw, nw: r.new_tp*newTpw,
-    diff: r.new_tp*newTpw - r.old_tp*oldTpw,
-    pct: (r.new_tp*newTpw - r.old_tp*oldTpw) / (r.old_tp*oldTpw) * 100
-  }));
-
-  // Position rows
-  const positions = T12_POSITIONS.map(r=>({
-    ...r, old: r.old_tp*oldTpw, nw: r.new_tp*newTpw,
-    diff: r.new_tp*newTpw - r.old_tp*oldTpw,
-    pct: r.old_tp>0 ? (r.new_tp*newTpw - r.old_tp*oldTpw)/(r.old_tp*oldTpw)*100 : 0
-  }));
-
-  const pctClr = v => v<0 ? '#ef4444' : '#16a34a';
-
-  document.getElementById('m12-content').innerHTML = `
-    <div style="display:grid;grid-template-columns:3fr 2fr;gap:16px;margin:0 28px 16px">
-      <div class="chart-card">
-        <div class="chart-card-hdr">Monatlicher KVG-Umsatz: Alter vs. Neuer Tarif <span class="cc-sub">CHF · Zürich + Kloten</span></div>
-        <div style="height:270px;position:relative"><canvas id="m12-chart"></canvas></div>
-      </div>
-      <div class="chart-card" style="display:flex;flex-direction:column">
-        <div class="chart-card-hdr">Monatstabelle</div>
-        <table style="width:100%;font-size:12px;border-collapse:collapse;flex:1">
-          <thead><tr style="background:#f9fafb">
-            <th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Monat</th>
-            <th style="padding:6px 8px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Beh.</th>
-            <th style="padding:6px 8px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Alt</th>
-            <th style="padding:6px 8px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Neu</th>
-            <th style="padding:6px 8px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;font-weight:600">Δ%</th>
-          </tr></thead>
-          <tbody>
-            ${months.map(r=>`<tr style="border-top:1px solid #f3f4f6">
-              <td style="padding:6px 8px;font-weight:600">${r.lbl}</td>
-              <td style="padding:6px 8px;text-align:right;color:#6b7280">${r.count.toLocaleString('de-CH')}</td>
-              <td style="padding:6px 8px;text-align:right">${chf(r.old,0)}<div style="font-size:9px;color:#d1d5db;margin-top:1px">${Math.round(r.raw_old_tp).toLocaleString('de-CH')} TP × 1.11</div></td>
-              <td style="padding:6px 8px;text-align:right">${chf(r.nw,0)}<div style="font-size:9px;color:#d1d5db;margin-top:1px">${Math.round(r.raw_new_tp).toLocaleString('de-CH')} TP × ${newTpw.toFixed(2)}</div></td>
-              <td style="padding:6px 8px;text-align:right;font-weight:700;color:${pctClr(r.pct)}">${r.pct.toFixed(1)}%</td>
-            </tr>`).join('')}
-            <tr style="border-top:2px solid #e5e7eb;background:#f9fafb;font-weight:700">
-              <td style="padding:6px 8px">Total</td>
-              <td style="padding:6px 8px;text-align:right;color:#6b7280">${T12_MONTHLY.reduce((s,r)=>s+r.count,0).toLocaleString('de-CH')}</td>
-              <td style="padding:6px 8px;text-align:right">${chf(totOld,0)}</td>
-              <td style="padding:6px 8px;text-align:right;color:${diffClr}">${chf(totNew,0)}</td>
-              <td style="padding:6px 8px;text-align:right;font-weight:800;color:${diffClr}">${diffPct>=0?'+':''}${diffPct.toFixed(1)}%</td>
-            </tr>
-          </tbody>
-        </table>
-        <div style="margin-top:12px;padding:10px 12px;background:#fef2f2;border-radius:6px;border:1px solid #fecaca">
-          <div style="font-size:10.5px;font-weight:700;color:#991b1b;margin-bottom:6px">📈 Jahreshochrechnung (×12/5)</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-            <div style="font-size:11.5px"><span style="color:#6b7280">Alter Tarif/J:</span><br><strong>${chf(annOld,0)}</strong></div>
-            <div style="font-size:11.5px"><span style="color:#6b7280">Neuer Tarif/J:</span><br><strong style="color:${diffClr}">${chf(annNew,0)}</strong></div>
-          </div>
-          <div style="margin-top:6px;font-size:13px;font-weight:800;color:${diffClr}">${annDiff>=0?'Jahresgewinn':'Jahresverlust'}: ${annDiff>=0?'+':''}${chf(annDiff,0)}</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin:0 28px 20px">
-      <div class="chart-card">
-        <div class="chart-card-hdr">Aufschlüsselung nach Tarifposition <span class="cc-sub">Alt (fix CHF 1.11/TP) → Neu (CHF ${newTpw.toFixed(2)}/TP) · Jan–Mai 2026</span></div>
-        <div style="overflow-x:auto">
-        <table style="width:100%;font-size:12px;border-collapse:collapse;min-width:680px">
-          <thead><tr style="background:#111827;color:#fff">
-            <th style="padding:9px 12px;text-align:left;font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500">Alter Tarif</th>
-            <th style="padding:9px 12px;text-align:left;font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500">→ Neuer Tarif</th>
-            <th style="padding:9px 12px;text-align:right;font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500">Anz.</th>
-            <th style="padding:9px 12px;text-align:right;font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500">CHF Alt</th>
-            <th style="padding:9px 12px;text-align:right;font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500">CHF Neu</th>
-            <th style="padding:9px 12px;text-align:right;font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500">Diff CHF</th>
-            <th style="padding:9px 12px;text-align:right;font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:500">Diff %</th>
-          </tr></thead>
-          <tbody>
-            ${(() => {
-              const groups = ['Physiotherapie','Ersttermin','MTT','Sonstiges'];
-              let rows = '';
-              groups.forEach(grp => {
-                const grpRows = positions.filter(r=>r.group===grp);
-                if (!grpRows.length) return;
-                const gOld = grpRows.reduce((s,r)=>s+r.old,0);
-                const gNew = grpRows.reduce((s,r)=>s+r.nw,0);
-                const gDiff = gNew - gOld;
-                const gPct = gDiff/gOld*100;
-                const gCount = grpRows.reduce((s,r)=>s+r.count,0);
-                const grpClr = grp==='MTT' ? '#065f46' : grp==='Ersttermin' ? '#7c2d12' : grp==='Physiotherapie' ? '#1e3a5f' : '#374151';
-                const grpBg  = grp==='MTT' ? '#f0fdf4' : grp==='Ersttermin' ? '#fff7ed' : grp==='Physiotherapie' ? '#eff6ff' : '#f9fafb';
-                rows += `<tr style="background:${grpBg};border-top:1px solid #e5e7eb">
-                  <td style="padding:7px 12px;font-weight:800;color:${grpClr};font-size:11px;text-transform:uppercase;letter-spacing:.04em" colspan="2">${grp}</td>
-                  <td style="padding:7px 12px;text-align:right;font-weight:700;color:${grpClr}">${gCount.toLocaleString('de-CH')}</td>
-                  <td style="padding:7px 12px;text-align:right;font-weight:700;color:${grpClr}">${chf(gOld,0)}</td>
-                  <td style="padding:7px 12px;text-align:right;font-weight:700;color:${grpClr}">${chf(gNew,0)}</td>
-                  <td style="padding:7px 12px;text-align:right;font-weight:800;color:${pctClr(gDiff)}">${chf(gDiff,0)}</td>
-                  <td style="padding:7px 12px;text-align:right;font-weight:800;color:${pctClr(gPct)}">${gPct.toFixed(1)}%</td>
-                </tr>`;
-                grpRows.forEach(r => {
-                  const oldTpPs  = (r.old_tp/r.count).toFixed(0);
-                  const newTpPs  = (r.new_tp/r.count).toFixed(2);
-                  const avgMin   = ((r.new_tp/r.count)/7.36*5).toFixed(0);
-                  const isMTT    = r.group==='MTT';
-                  const isET     = r.group==='Ersttermin';
-                  const oldFormula = isET && r.pos.includes('7301')
-                    ? `${r.count.toLocaleString('de-CH')} × (2×48+24) TP × CHF 1.11 = 120 TP`
-                    : `${r.count.toLocaleString('de-CH')} × ${oldTpPs} TP × CHF 1.11`;
-                  const newFormula = isMTT
-                    ? `${r.count.toLocaleString('de-CH')} × 27.93 TP × CHF ${newTpw.toFixed(2)}`
-                    : isET
-                    ? `${r.count.toLocaleString('de-CH')} × ${newTpPs} TP × CHF ${newTpw.toFixed(2)} (= CHF ${(r.new_tp/r.count*newTpw).toFixed(2)}/Sitz. bei ${newTpw.toFixed(2)})`
-                    : `${r.count.toLocaleString('de-CH')} × ~${newTpPs} TP × CHF ${newTpw.toFixed(2)} (Ø ${avgMin} Min.)`;
-                  rows += `<tr style="border-bottom:1px solid #f9fafb">
-                    <td style="padding:6px 12px 6px 20px;color:#374151">${r.pos}</td>
-                    <td style="padding:6px 12px;color:#9ca3af;font-size:11px">${r.label}</td>
-                    <td style="padding:6px 12px;text-align:right;color:#6b7280">${r.count.toLocaleString('de-CH')}</td>
-                    <td style="padding:6px 12px;text-align:right">${chf(r.old,0)}<div style="font-size:9.5px;color:#9ca3af;margin-top:2px;white-space:nowrap">${oldFormula}</div></td>
-                    <td style="padding:6px 12px;text-align:right">${chf(r.nw,0)}<div style="font-size:9.5px;color:#9ca3af;margin-top:2px;white-space:nowrap">${newFormula}</div></td>
-                    <td style="padding:6px 12px;text-align:right;font-weight:700;color:${pctClr(r.diff)}">${chf(r.diff,0)}</td>
-                    <td style="padding:6px 12px;text-align:right;font-weight:700;color:${pctClr(r.pct)}">${r.old_tp>0?r.pct.toFixed(1)+'%':'—'}</td>
-                  </tr>`;
-                });
-              });
-              return rows;
-            })()}
-            <tr style="background:#111827;color:#fff;font-weight:700;border-top:2px solid #374151">
-              <td style="padding:9px 12px" colspan="2">Total</td>
-              <td style="padding:9px 12px;text-align:right">${T12_POSITIONS.reduce((s,r)=>s+r.count,0).toLocaleString('de-CH')}</td>
-              <td style="padding:9px 12px;text-align:right">${chf(totOld,0)}</td>
-              <td style="padding:9px 12px;text-align:right">${chf(totNew,0)}</td>
-              <td style="padding:9px 12px;text-align:right;color:${diffAbs>=0?'#86efac':'#fca5a5'}">${chf(diffAbs,0)}</td>
-              <td style="padding:9px 12px;text-align:right;color:${diffAbs>=0?'#86efac':'#fca5a5'}">${diffPct.toFixed(1)}%</td>
-            </tr>
-          </tbody>
-        </table>
-        </div>
-        <div style="margin-top:8px;font-size:11px;color:#9ca3af">* MTT-Export (3'468 Sitzungen) ohne Datum → gleichmässig auf Jan–Mai verteilt</div>
-      </div>
-    </div>
-  `;
-
-  // Chart
-  mkChart('m12-chart', {
-    type:'bar',
-    data:{
-      labels: mLabels,
-      datasets:[
-        {label:'Alter Tarif (7301/7311/7350)', data:months.map(r=>Math.round(r.old)), backgroundColor:'rgba(17,24,39,.75)'},
-        {label:'Neuer Tarif (27110 · CHF '+newTpw.toFixed(2)+'/TP)', data:months.map(r=>Math.round(r.nw)), backgroundColor:'rgba(59,130,246,.75)'},
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{position:'bottom', labels:{font:{size:11}, padding:14}},
-        tooltip:{callbacks:{label:c=>c.dataset.label+': CHF '+Math.round(c.parsed.y).toLocaleString('de-CH')}}
-      },
-      scales:{
-        y:{beginAtZero:true, ticks:{callback:v=>'CHF '+Math.round(v/1000)+'k'}, grid:{color:'#f3f4f6'}},
-        x:{grid:{display:false}, ticks:{font:{size:11}}}
-      }
-    }
-  });
-}
-
 
 /* ===================== MODULE 13 - AUSLASTUNGSANALYSE ===================== */
 const UTIL_RAW = [{month:'2024-07',name:'Bakarcic Damir',loc:'Kloten',soll:46.9,ist:33.4,weiss:13.5},{month:'2024-07',name:'Bergmann Nicole',loc:'Kloten',soll:51.15,ist:46.65,weiss:4.5},{month:'2024-07',name:'Crameri Genny',loc:'Kloten',soll:0,ist:0,weiss:10},{month:'2024-07',name:'Dittus Viktoria',loc:'Kloten',soll:8.4,ist:3.9,weiss:4.5},{month:'2024-07',name:'Fringer Carla',loc:'Kloten',soll:169,ist:154,weiss:15},{month:'2024-07',name:'Gebhardt Lena',loc:'Kloten',soll:127,ist:111,weiss:16},{month:'2024-07',name:'Haas Désiree',loc:'Kloten',soll:169,ist:144.5,weiss:24.5},{month:'2024-07',name:'Hellmüller Lisa',loc:'Kloten',soll:135.4,ist:128.9,weiss:6.5},{month:'2024-07',name:'Kwidzinski Marc',loc:'Kloten',soll:76.45,ist:61.45,weiss:15},{month:'2024-07',name:'Fäbe Buchschacher',loc:'Kloten',soll:33.8,ist:24.8,weiss:9},{month:'2024-07',name:'Tsakmakidis Geri',loc:'Kloten',soll:93,ist:69,weiss:24},{month:'2024-07',name:'Schälin Alsu',loc:'Kloten',soll:0,ist:0,weiss:9.5},{month:'2024-07',name:'Wenger Shelly (per',loc:'Kloten',soll:126.8,ist:108.8,weiss:18},{month:'2024-07',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2024-07',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-07',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-07',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-07',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-07',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2024-07',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2024-07',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2024-07',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-07',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-08',name:'Bakarcic Damir',loc:'Kloten',soll:63.7,ist:44.2,weiss:19.5},{month:'2024-08',name:'Bergmann Nicole',loc:'Kloten',soll:126.75,ist:119.25,weiss:7.5},{month:'2024-08',name:'Crameri Genny',loc:'Kloten',soll:0,ist:0,weiss:4},{month:'2024-08',name:'Dittus Viktoria',loc:'Kloten',soll:8.4,ist:4.9,weiss:3.5},{month:'2024-08',name:'Fringer Carla',loc:'Kloten',soll:160.6,ist:149.6,weiss:11},{month:'2024-08',name:'Gebhardt Lena',loc:'Kloten',soll:152.2,ist:142.2,weiss:10},{month:'2024-08',name:'Haas Désiree',loc:'Kloten',soll:143.8,ist:135.3,weiss:8.5},{month:'2024-08',name:'Hellmüller Lisa',loc:'Kloten',soll:152.2,ist:142.7,weiss:9.5},{month:'2024-08',name:'Fäbe Buchschacher',loc:'Kloten',soll:33.8,ist:24.8,weiss:9},{month:'2024-08',name:'Tsakmakidis Geri',loc:'Kloten',soll:42.6,ist:31.1,weiss:11.5},{month:'2024-08',name:'Schälin Alsu',loc:'Kloten',soll:0,ist:0,weiss:34.5},{month:'2024-08',name:'Wenger Shelly (per',loc:'Kloten',soll:51.2,ist:41.7,weiss:9.5},{month:'2024-08',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2024-08',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-08',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-08',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-08',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-08',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2024-08',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2024-08',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2024-08',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-08',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-09',name:'Bakarcic Damir',loc:'Kloten',soll:109.9,ist:92.9,weiss:17},{month:'2024-09',name:'Bergmann Nicole',loc:'Kloten',soll:101.6,ist:97.6,weiss:4},{month:'2024-09',name:'Crameri Genny',loc:'Kloten',soll:67.9,ist:64.9,weiss:3},{month:'2024-09',name:'Dittus Viktoria',loc:'Kloten',soll:8.6,ist:7.6,weiss:1},{month:'2024-09',name:'Fringer Carla',loc:'Kloten',soll:164.8,ist:157.8,weiss:7},{month:'2024-09',name:'Gebhardt Lena',loc:'Kloten',soll:118.6,ist:111.1,weiss:7.5},{month:'2024-09',name:'Haas Désiree',loc:'Kloten',soll:143.8,ist:137.3,weiss:6.5},{month:'2024-09',name:'Hellmüller Lisa',loc:'Kloten',soll:152.2,ist:142.2,weiss:10},{month:'2024-09',name:'Baldischweiler Laura',loc:'Kloten',soll:143.8,ist:123.8,weiss:20},{month:'2024-09',name:'Fäbe Buchschacher',loc:'Kloten',soll:101.4,ist:66.4,weiss:35},{month:'2024-09',name:'Wenger Shelly (per',loc:'Kloten',soll:59.6,ist:42.6,weiss:17},{month:'2024-09',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2024-09',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-09',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-09',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-09',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-09',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2024-09',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2024-09',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2024-09',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-09',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-10',name:'Bakarcic Damir',loc:'Kloten',soll:67.9,ist:60.4,weiss:7.5},{month:'2024-10',name:'Bergmann Nicole',loc:'Kloten',soll:72.2,ist:68.7,weiss:3.5},{month:'2024-10',name:'Crameri Genny',loc:'Kloten',soll:34.3,ist:32.3,weiss:2},{month:'2024-10',name:'Dittus Viktoria',loc:'Kloten',soll:-16.6,ist:-20.1,weiss:3.5},{month:'2024-10',name:'Fringer Carla',loc:'Kloten',soll:160.6,ist:154.6,weiss:6},{month:'2024-10',name:'Gebhardt Lena',loc:'Kloten',soll:85,ist:78,weiss:7},{month:'2024-10',name:'Haas Désiree',loc:'Kloten',soll:152.2,ist:146.2,weiss:6},{month:'2024-10',name:'Hellmüller Lisa',loc:'Kloten',soll:93.4,ist:88.9,weiss:4.5},{month:'2024-10',name:'Baldischweiler Laura',loc:'Kloten',soll:160.6,ist:144.1,weiss:16.5},{month:'2024-10',name:'Fäbe Buchschacher',loc:'Kloten',soll:84.6,ist:26.6,weiss:58},{month:'2024-10',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2024-10',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-10',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-10',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-10',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-10',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2024-10',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2024-10',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2024-10',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-10',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-11',name:'Bakarcic Damir',loc:'Kloten',soll:114.1,ist:110.1,weiss:4},{month:'2024-11',name:'Bergmann Nicole',loc:'Kloten',soll:101.6,ist:97.6,weiss:4},{month:'2024-11',name:'Crameri Genny',loc:'Kloten',soll:34.3,ist:34.3,weiss:0},{month:'2024-11',name:'Dittus Viktoria',loc:'Kloten',soll:25.4,ist:20.9,weiss:4.5},{month:'2024-11',name:'Fringer Carla',loc:'Kloten',soll:160.6,ist:155.1,weiss:5.5},{month:'2024-11',name:'Gebhardt Lena',loc:'Kloten',soll:156.4,ist:148.4,weiss:8},{month:'2024-11',name:'Haas Désiree',loc:'Kloten',soll:118.6,ist:113.6,weiss:5},{month:'2024-11',name:'Hellmüller Lisa',loc:'Kloten',soll:127,ist:126.5,weiss:0.5},{month:'2024-11',name:'Baldischweiler Laura',loc:'Kloten',soll:169,ist:163,weiss:6},{month:'2024-11',name:'Fäbe Buchschacher',loc:'Kloten',soll:34.2,ist:18.7,weiss:15.5},{month:'2024-11',name:'Philippe Dobler',loc:'Kloten',soll:135.2,ist:128.2,weiss:7},{month:'2024-11',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2024-11',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-11',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-11',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-11',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-11',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2024-11',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2024-11',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2024-11',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-11',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-12',name:'Bakarcic Damir',loc:'Kloten',soll:105.7,ist:101.2,weiss:4.5},{month:'2024-12',name:'Bergmann Nicole',loc:'Kloten',soll:101.6,ist:99.6,weiss:2},{month:'2024-12',name:'Crameri Genny',loc:'Kloten',soll:118.3,ist:118.3,weiss:0},{month:'2024-12',name:'Dittus Viktoria',loc:'Kloten',soll:33.8,ist:32.3,weiss:1.5},{month:'2024-12',name:'Fringer Carla',loc:'Kloten',soll:160.6,ist:153.6,weiss:7},{month:'2024-12',name:'Gebhardt Lena',loc:'Kloten',soll:131.2,ist:125.2,weiss:6},{month:'2024-12',name:'Haas Désiree',loc:'Kloten',soll:9.4,ist:9.4,weiss:0},{month:'2024-12',name:'Hellmüller Lisa',loc:'Kloten',soll:127,ist:123.5,weiss:3.5},{month:'2024-12',name:'Baldischweiler Laura',loc:'Kloten',soll:101.8,ist:99.3,weiss:2.5},{month:'2024-12',name:'Fäbe Buchschacher',loc:'Kloten',soll:101.4,ist:80.9,weiss:20.5},{month:'2024-12',name:'Philippe Dobler',loc:'Kloten',soll:126.8,ist:120.8,weiss:6},{month:'2024-12',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2024-12',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-12',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-12',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-12',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2024-12',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2024-12',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2024-12',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2024-12',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2024-12',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-01',name:'Bakarcic Damir',loc:'Kloten',soll:97.3,ist:89.8,weiss:7.5},{month:'2025-01',name:'Bergmann Nicole',loc:'Kloten',soll:110,ist:100.5,weiss:9.5},{month:'2025-01',name:'Crameri Genny',loc:'Kloten',soll:118.3,ist:118.3,weiss:0},{month:'2025-01',name:'Dittus Viktoria',loc:'Kloten',soll:-58.6,ist:-59.1,weiss:0.5},{month:'2025-01',name:'Fringer Carla',loc:'Kloten',soll:85,ist:68.5,weiss:16.5},{month:'2025-01',name:'Gebhardt Lena',loc:'Kloten',soll:110.2,ist:95.2,weiss:15},{month:'2025-01',name:'Haas Désiree',loc:'Kloten',soll:85,ist:70,weiss:15},{month:'2025-01',name:'Hellmüller Lisa',loc:'Kloten',soll:143.8,ist:136.8,weiss:7},{month:'2025-01',name:'Baldischweiler Laura',loc:'Kloten',soll:152.2,ist:137.2,weiss:15},{month:'2025-01',name:'Fäbe Buchschacher',loc:'Kloten',soll:93,ist:60.5,weiss:32.5},{month:'2025-01',name:'Philippe Dobler',loc:'Kloten',soll:126.8,ist:109.8,weiss:17},{month:'2025-01',name:'Lozic Antonio',loc:'Kloten',soll:169,ist:147,weiss:22},{month:'2025-01',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-01',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-01',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-01',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-01',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-01',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-01',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-01',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-01',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-01',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-02',name:'Bakarcic Damir',loc:'Kloten',soll:76.3,ist:62.8,weiss:13.5},{month:'2025-02',name:'Bergmann Nicole',loc:'Kloten',soll:118.4,ist:112.9,weiss:5.5},{month:'2025-02',name:'Crameri Genny',loc:'Kloten',soll:59.5,ist:57.5,weiss:2},{month:'2025-02',name:'Sokolov Andrei',loc:'Kloten',soll:169,ist:91.5,weiss:77.5},{month:'2025-02',name:'Fringer Carla',loc:'Kloten',soll:160.6,ist:136.6,weiss:24},{month:'2025-02',name:'Gebhardt Lena',loc:'Kloten',soll:148,ist:110.5,weiss:37.5},{month:'2025-02',name:'Haas Désiree',loc:'Kloten',soll:160.6,ist:136.1,weiss:24.5},{month:'2025-02',name:'Hellmüller Lisa',loc:'Kloten',soll:160.6,ist:143.6,weiss:17},{month:'2025-02',name:'Baldischweiler Laura',loc:'Kloten',soll:131.2,ist:110.2,weiss:21},{month:'2025-02',name:'Fäbe Buchschacher',loc:'Kloten',soll:93,ist:62,weiss:31},{month:'2025-02',name:'Philippe Dobler',loc:'Kloten',soll:110,ist:86.5,weiss:23.5},{month:'2025-02',name:'Lozic Antonio',loc:'Kloten',soll:169,ist:123.5,weiss:45.5},{month:'2025-02',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-02',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-02',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-02',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-02',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-02',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-02',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-02',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-02',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-02',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-03',name:'Bakarcic Damir',loc:'Kloten',soll:118.3,ist:106.8,weiss:11.5},{month:'2025-03',name:'Crameri Genny',loc:'Kloten',soll:118.3,ist:118.3,weiss:0},{month:'2025-03',name:'Sokolov Andrei',loc:'Kloten',soll:169,ist:115,weiss:54},{month:'2025-03',name:'Fringer Carla',loc:'Kloten',soll:160.6,ist:147.1,weiss:13.5},{month:'2025-03',name:'Gebhardt Lena',loc:'Kloten',soll:152.2,ist:138.2,weiss:14},{month:'2025-03',name:'Robin Post',loc:'Kloten',soll:169,ist:138,weiss:31},{month:'2025-03',name:'Hellmüller Lisa',loc:'Kloten',soll:127,ist:126,weiss:1},{month:'2025-03',name:'Baldischweiler Laura',loc:'Kloten',soll:85,ist:75.5,weiss:9.5},{month:'2025-03',name:'Fäbe Buchschacher',loc:'Kloten',soll:101.4,ist:71.9,weiss:29.5},{month:'2025-03',name:'Philippe Dobler',loc:'Kloten',soll:84.8,ist:73.8,weiss:11},{month:'2025-03',name:'Lozic Antonio',loc:'Kloten',soll:169,ist:147,weiss:22},{month:'2025-03',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-03',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-03',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-03',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-03',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-03',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-03',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-03',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-03',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-03',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-04',name:'Bakarcic Damir',loc:'Kloten',soll:109.9,ist:98.4,weiss:11.5},{month:'2025-04',name:'Crameri Genny',loc:'Kloten',soll:93.1,ist:91.1,weiss:2},{month:'2025-04',name:'Sokolov Andrei',loc:'Kloten',soll:127,ist:104,weiss:23},{month:'2025-04',name:'Fringer Carla',loc:'Kloten',soll:152.2,ist:147.2,weiss:5},{month:'2025-04',name:'Gebhardt Lena',loc:'Kloten',soll:110.2,ist:102.7,weiss:7.5},{month:'2025-04',name:'Robin Post',loc:'Kloten',soll:160.6,ist:122.1,weiss:38.5},{month:'2025-04',name:'Baldischweiler Laura',loc:'Kloten',soll:135.4,ist:127.9,weiss:7.5},{month:'2025-04',name:'Fäbe Buchschacher',loc:'Kloten',soll:42.4,ist:17.4,weiss:25},{month:'2025-04',name:'Philippe Dobler',loc:'Kloten',soll:118.4,ist:105.4,weiss:13},{month:'2025-04',name:'Lozic Antonio',loc:'Kloten',soll:169,ist:154,weiss:15},{month:'2025-04',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-04',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-04',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-04',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-04',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-04',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-04',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-04',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-04',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-04',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-05',name:'Bakarcic Damir',loc:'Kloten',soll:109.9,ist:90.4,weiss:19.5},{month:'2025-05',name:'Crameri Genny',loc:'Kloten',soll:101.5,ist:97,weiss:4.5},{month:'2025-05',name:'Sokolov Andrei',loc:'Kloten',soll:169,ist:155,weiss:14},{month:'2025-05',name:'Fringer Carla',loc:'Kloten',soll:68.2,ist:64.2,weiss:4},{month:'2025-05',name:'Gebhardt Lena',loc:'Kloten',soll:169,ist:169,weiss:0},{month:'2025-05',name:'Robin Post',loc:'Kloten',soll:118.6,ist:88.1,weiss:30.5},{month:'2025-05',name:'Baldischweiler Laura',loc:'Kloten',soll:152.2,ist:146.7,weiss:5.5},{month:'2025-05',name:'Fäbe Buchschacher',loc:'Kloten',soll:59.2,ist:42.2,weiss:17},{month:'2025-05',name:'Philippe Dobler',loc:'Kloten',soll:126.8,ist:118.8,weiss:8},{month:'2025-05',name:'Lozic Antonio',loc:'Kloten',soll:152.2,ist:139.2,weiss:13},{month:'2025-05',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-05',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-05',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-05',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-05',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-05',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-05',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-05',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-05',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-05',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-06',name:'Bakarcic Damir',loc:'Kloten',soll:101.5,ist:89.5,weiss:12},{month:'2025-06',name:'Crameri Genny',loc:'Kloten',soll:109.9,ist:105.9,weiss:4},{month:'2025-06',name:'Sokolov Andrei',loc:'Kloten',soll:152.2,ist:147.2,weiss:5},{month:'2025-06',name:'Fringer Carla',loc:'Kloten',soll:143.8,ist:135.8,weiss:8},{month:'2025-06',name:'Robin Post',loc:'Kloten',soll:143.8,ist:118.8,weiss:25},{month:'2025-06',name:'Baldischweiler Laura',loc:'Kloten',soll:169,ist:169,weiss:0},{month:'2025-06',name:'Fäbe Buchschacher',loc:'Kloten',soll:34,ist:5,weiss:29},{month:'2025-06',name:'Philippe Dobler',loc:'Kloten',soll:68,ist:65,weiss:3},{month:'2025-06',name:'Lozic Antonio',loc:'Kloten',soll:51.4,ist:45.9,weiss:5.5},{month:'2025-06',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-06',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-06',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-06',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-06',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-06',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-06',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-06',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-06',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-06',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-07',name:'Bakarcic Damir',loc:'Kloten',soll:67.9,ist:50.4,weiss:17.5},{month:'2025-07',name:'Crameri Genny',loc:'Kloten',soll:118.3,ist:113.3,weiss:5},{month:'2025-07',name:'Sokolov Andrei',loc:'Kloten',soll:169,ist:139,weiss:30},{month:'2025-07',name:'Fringer Carla',loc:'Kloten',soll:152.2,ist:130.7,weiss:21.5},{month:'2025-07',name:'Robin Post',loc:'Kloten',soll:135.4,ist:102.4,weiss:33},{month:'2025-07',name:'Dominique Goncalves',loc:'Kloten',soll:59.2,ist:54.2,weiss:5},{month:'2025-07',name:'Fäbe Buchschacher',loc:'Kloten',soll:25.6,ist:6.1,weiss:19.5},{month:'2025-07',name:'Philippe Dobler',loc:'Kloten',soll:110,ist:96.5,weiss:13.5},{month:'2025-07',name:'Lozic Antonio',loc:'Kloten',soll:169,ist:147,weiss:22},{month:'2025-07',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-07',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-07',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-07',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-07',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-07',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-07',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-07',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-07',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-07',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-08',name:'Bakarcic Damir',loc:'Kloten',soll:59.5,ist:49.5,weiss:10},{month:'2025-08',name:'Crameri Genny',loc:'Kloten',soll:25.9,ist:20.9,weiss:5},{month:'2025-08',name:'Sokolov Andrei',loc:'Kloten',soll:160.6,ist:139.1,weiss:21.5},{month:'2025-08',name:'Fringer Carla',loc:'Kloten',soll:143.8,ist:119.8,weiss:24},{month:'2025-08',name:'Robin Post',loc:'Kloten',soll:148,ist:115.5,weiss:32.5},{month:'2025-08',name:'Dominique Goncalves',loc:'Kloten',soll:59.2,ist:42.2,weiss:17},{month:'2025-08',name:'Fäbe Buchschacher',loc:'Kloten',soll:67.6,ist:50.6,weiss:17},{month:'2025-08',name:'Philippe Dobler',loc:'Kloten',soll:110,ist:99.5,weiss:10.5},{month:'2025-08',name:'Lozic Antonio',loc:'Kloten',soll:93.4,ist:71.9,weiss:21.5},{month:'2025-08',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-08',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-08',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-08',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-08',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-08',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-08',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-08',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-08',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-08',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-09',name:'Bakarcic Damir',loc:'Kloten',soll:105.7,ist:98.7,weiss:7},{month:'2025-09',name:'Crameri Genny',loc:'Kloten',soll:109.9,ist:106.9,weiss:3},{month:'2025-09',name:'Sokolov Andrei',loc:'Kloten',soll:169,ist:147,weiss:22},{month:'2025-09',name:'Anna Jurovicova',loc:'Kloten',soll:152.1,ist:133.6,weiss:18.5},{month:'2025-09',name:'Robin Post',loc:'Kloten',soll:169,ist:128.5,weiss:40.5},{month:'2025-09',name:'Dominique Goncalves',loc:'Kloten',soll:42.4,ist:30.4,weiss:12},{month:'2025-09',name:'Fäbe Buchschacher',loc:'Kloten',soll:67.6,ist:44.1,weiss:23.5},{month:'2025-09',name:'Philippe Dobler',loc:'Kloten',soll:51.2,ist:35.2,weiss:16},{month:'2025-09',name:'Lozic Antonio',loc:'Kloten',soll:68.2,ist:61.2,weiss:7},{month:'2025-09',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-09',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-09',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-09',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-09',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-09',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-09',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-09',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-09',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-09',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-10',name:'Bakarcic Damir',loc:'Kloten',soll:67.9,ist:59.9,weiss:8},{month:'2025-10',name:'Crameri Genny',loc:'Kloten',soll:76.3,ist:73.8,weiss:2.5},{month:'2025-10',name:'Sokolov Andrei',loc:'Kloten',soll:127,ist:105,weiss:22},{month:'2025-10',name:'Anna Jurovicova',loc:'Kloten',soll:152.1,ist:130.1,weiss:22},{month:'2025-10',name:'Robin Post',loc:'Kloten',soll:152.2,ist:114.7,weiss:37.5},{month:'2025-10',name:'Dominique Goncalves',loc:'Kloten',soll:55,ist:38,weiss:17},{month:'2025-10',name:'Fäbe Buchschacher',loc:'Kloten',soll:59.2,ist:41.7,weiss:17.5},{month:'2025-10',name:'Philippe Dobler',loc:'Kloten',soll:110,ist:91.5,weiss:18.5},{month:'2025-10',name:'Lozic Antonio',loc:'Kloten',soll:127,ist:96,weiss:31},{month:'2025-10',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-10',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-10',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-10',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-10',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-10',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-10',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-10',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-10',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-10',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-11',name:'Bakarcic Damir',loc:'Kloten',soll:118.3,ist:111.8,weiss:6.5},{month:'2025-11',name:'Florian Mader',loc:'Kloten',soll:143.7,ist:114.2,weiss:29.5},{month:'2025-11',name:'Crameri Genny',loc:'Kloten',soll:118.3,ist:114.3,weiss:4},{month:'2025-11',name:'Sokolov Andrei',loc:'Kloten',soll:127,ist:108.5,weiss:18.5},{month:'2025-11',name:'Anna Jurovicova',loc:'Kloten',soll:122.7,ist:107.7,weiss:15},{month:'2025-11',name:'Robin Post',loc:'Kloten',soll:160.6,ist:119.1,weiss:41.5},{month:'2025-11',name:'Dominique Goncalves',loc:'Kloten',soll:84.6,ist:68.6,weiss:16},{month:'2025-11',name:'Fäbe Buchschacher',loc:'Kloten',soll:67.6,ist:51.6,weiss:16},{month:'2025-11',name:'Philippe Dobler',loc:'Kloten',soll:135.2,ist:120.7,weiss:14.5},{month:'2025-11',name:'Lozic Antonio',loc:'Kloten',soll:169,ist:136.5,weiss:32.5},{month:'2025-11',name:'Chamite Haszna',loc:'Zürich',soll:36,ist:0,weiss:0},{month:'2025-11',name:'Dannenbauer Lara',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-11',name:'Deplazes David',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-11',name:'Gallmetzer Sophia',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-11',name:'Keller Maya',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-11',name:'Loesch Nadja',loc:'Zürich',soll:101.4,ist:0,weiss:0},{month:'2025-11',name:'Nguyen Ryan',loc:'Zürich',soll:118.3,ist:0,weiss:0},{month:'2025-11',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:0,weiss:0},{month:'2025-11',name:'Waterhouse Alex',loc:'Zürich',soll:169,ist:0,weiss:0},{month:'2025-11',name:'Zürcher Nadine',loc:'Zürich',soll:135.2,ist:0,weiss:0},{month:'2025-12',name:'Bakarcic Damir',loc:'Kloten',soll:97.3,ist:80.8,weiss:16.5},{month:'2025-12',name:'Florian Mader',loc:'Kloten',soll:105.9,ist:78.4,weiss:27.5},{month:'2025-12',name:'Gabriela Wimberska',loc:'Kloten',soll:152.2,ist:133.2,weiss:19},{month:'2025-12',name:'Crameri Genny',loc:'Kloten',soll:76.3,ist:72.8,weiss:3.5},{month:'2025-12',name:'Sokolov Andrei',loc:'Kloten',soll:-70.8,ist:-70.75,weiss:0},{month:'2025-12',name:'Anna Jurovicova',loc:'Kloten',soll:68.1,ist:52.1,weiss:16},{month:'2025-12',name:'Robin Post',loc:'Kloten',soll:135.4,ist:104.4,weiss:31},{month:'2025-12',name:'Dominique Goncalves',loc:'Kloten',soll:51,ist:39,weiss:12},{month:'2025-12',name:'Fäbe Buchschacher',loc:'Kloten',soll:21.2,ist:12.7,weiss:8.5},{month:'2025-12',name:'Philippe Dobler',loc:'Kloten',soll:47,ist:39.5,weiss:7.5},{month:'2025-12',name:'Lozic Antonio',loc:'Kloten',soll:135.4,ist:110.9,weiss:24.5},{month:'2025-12',name:'Chamite Haszna',loc:'Zürich',soll:17,ist:10,weiss:7},{month:'2025-12',name:'Dannenbauer Lara',loc:'Zürich',soll:76.4,ist:64.4,weiss:12},{month:'2025-12',name:'Deplazes David',loc:'Zürich',soll:93.4,ist:73.9,weiss:19.5},{month:'2025-12',name:'Gallmetzer Sophia',loc:'Zürich',soll:101.8,ist:80.8,weiss:21},{month:'2025-12',name:'Keller Maya',loc:'Zürich',soll:-45.4,ist:-45.4,weiss:0},{month:'2025-12',name:'Loesch Nadja',loc:'Zürich',soll:80.4,ist:66.9,weiss:13.5},{month:'2025-12',name:'Nguyen Ryan',loc:'Zürich',soll:72.1,ist:67.1,weiss:5},{month:'2025-12',name:'Tomas Ciuzelis',loc:'Zürich',soll:139.6,ist:110.1,weiss:29.5},{month:'2025-12',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:33.8,weiss:0},{month:'2025-12',name:'Cleo Mathys',loc:'Zürich',soll:118.4,ist:64.4,weiss:54},{month:'2025-12',name:'Waterhouse Alex',loc:'Zürich',soll:93.4,ist:81.4,weiss:12},{month:'2025-12',name:'Zürcher Nadine',loc:'Zürich',soll:110,ist:62.5,weiss:47.5},{month:'2026-01',name:'Bakarcic Damir',loc:'Kloten',soll:76.2,ist:64.7,weiss:11.5},{month:'2026-01',name:'Florian Mader',loc:'Kloten',soll:169,ist:144,weiss:25},{month:'2026-01',name:'Gabriela Wimberska',loc:'Kloten',soll:160.6,ist:126.6,weiss:34},{month:'2026-01',name:'Crameri Genny',loc:'Kloten',soll:93.1,ist:92.6,weiss:0.5},{month:'2026-01',name:'Sokolov Andrei',loc:'Kloten',soll:-58.2,ist:-58.15,weiss:0},{month:'2026-01',name:'Anna Jurovicova',loc:'Kloten',soll:139.5,ist:96,weiss:43.5},{month:'2026-01',name:'Robin Post',loc:'Kloten',soll:160.6,ist:106.6,weiss:54},{month:'2026-01',name:'Dominique Goncalves',loc:'Kloten',soll:84.6,ist:64.1,weiss:20.5},{month:'2026-01',name:'Fäbe Buchschacher',loc:'Kloten',soll:25.4,ist:16.4,weiss:9},{month:'2026-01',name:'Philippe Dobler',loc:'Kloten',soll:101.6,ist:82.6,weiss:19},{month:'2026-01',name:'Lozic Antonio',loc:'Kloten',soll:152.2,ist:126.2,weiss:26},{month:'2026-01',name:'Chamite Haszna',loc:'Zürich',soll:17,ist:10,weiss:7},{month:'2026-01',name:'Dannenbauer Lara',loc:'Zürich',soll:76.4,ist:64.4,weiss:12},{month:'2026-01',name:'Deplazes David',loc:'Zürich',soll:93.4,ist:73.9,weiss:19.5},{month:'2026-01',name:'Gallmetzer Sophia',loc:'Zürich',soll:101.8,ist:80.8,weiss:21},{month:'2026-01',name:'Keller Maya',loc:'Zürich',soll:-45.4,ist:-45.4,weiss:0},{month:'2026-01',name:'Loesch Nadja',loc:'Zürich',soll:80.4,ist:66.9,weiss:13.5},{month:'2026-01',name:'Nguyen Ryan',loc:'Zürich',soll:72.1,ist:67.1,weiss:5},{month:'2026-01',name:'Tomas Ciuzelis',loc:'Zürich',soll:139.6,ist:110.1,weiss:29.5},{month:'2026-01',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:33.8,weiss:0},{month:'2026-01',name:'Cleo Mathys',loc:'Zürich',soll:118.4,ist:64.4,weiss:54},{month:'2026-01',name:'Waterhouse Alex',loc:'Zürich',soll:93.4,ist:81.4,weiss:12},{month:'2026-01',name:'Zürcher Nadine',loc:'Zürich',soll:110,ist:62.5,weiss:47.5},{month:'2026-02',name:'Bakarcic Damir',loc:'Kloten',soll:17.4,ist:10.9,weiss:6.5},{month:'2026-02',name:'Florian Mader',loc:'Kloten',soll:110.2,ist:90.7,weiss:19.5},{month:'2026-02',name:'Gabriela Wimberska',loc:'Kloten',soll:135.4,ist:117.9,weiss:17.5},{month:'2026-02',name:'Crameri Genny',loc:'Kloten',soll:76.3,ist:70.8,weiss:5.5},{month:'2026-02',name:'Sokolov Andrei',loc:'Kloten',soll:-58.2,ist:-58.15,weiss:0},{month:'2026-02',name:'Anna Jurovicova',loc:'Kloten',soll:110.1,ist:76.6,weiss:33.5},{month:'2026-02',name:'Isabell Müller',loc:'Kloten',soll:152.1,ist:105.6,weiss:46.5},{month:'2026-02',name:'Robin Post',loc:'Kloten',soll:85,ist:72.5,weiss:12.5},{month:'2026-02',name:'Dominique Goncalves',loc:'Kloten',soll:93,ist:81.5,weiss:11.5},{month:'2026-02',name:'Sanja Muncan',loc:'Kloten',soll:93,ist:40.5,weiss:52.5},{month:'2026-02',name:'Fäbe Buchschacher',loc:'Kloten',soll:25.4,ist:13.9,weiss:11.5},{month:'2026-02',name:'Philippe Dobler',loc:'Kloten',soll:110,ist:104.5,weiss:5.5},{month:'2026-02',name:'Lozic Antonio',loc:'Kloten',soll:127,ist:83.5,weiss:43.5},{month:'2026-02',name:'Chamite Haszna',loc:'Zürich',soll:17,ist:10,weiss:7},{month:'2026-02',name:'Dannenbauer Lara',loc:'Zürich',soll:76.4,ist:64.4,weiss:12},{month:'2026-02',name:'Deplazes David',loc:'Zürich',soll:93.4,ist:73.9,weiss:19.5},{month:'2026-02',name:'Gallmetzer Sophia',loc:'Zürich',soll:101.8,ist:80.8,weiss:21},{month:'2026-02',name:'Keller Maya',loc:'Zürich',soll:-45.4,ist:-45.4,weiss:0},{month:'2026-02',name:'Loesch Nadja',loc:'Zürich',soll:80.4,ist:66.9,weiss:13.5},{month:'2026-02',name:'Nguyen Ryan',loc:'Zürich',soll:72.1,ist:67.1,weiss:5},{month:'2026-02',name:'Tomas Ciuzelis',loc:'Zürich',soll:139.6,ist:110.1,weiss:29.5},{month:'2026-02',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:33.8,weiss:0},{month:'2026-02',name:'Cleo Mathys',loc:'Zürich',soll:118.4,ist:64.4,weiss:54},{month:'2026-02',name:'Waterhouse Alex',loc:'Zürich',soll:93.4,ist:81.4,weiss:12},{month:'2026-02',name:'Zürcher Nadine',loc:'Zürich',soll:110,ist:62.5,weiss:47.5},{month:'2026-03',name:'Bakarcic Damir',loc:'Kloten',soll:76.2,ist:63.7,weiss:12.5},{month:'2026-03',name:'Florian Mader',loc:'Kloten',soll:118.6,ist:99.1,weiss:19.5},{month:'2026-03',name:'Gabriela Wimberska',loc:'Kloten',soll:118.6,ist:101.6,weiss:17},{month:'2026-03',name:'Crameri Genny',loc:'Kloten',soll:118.3,ist:113.3,weiss:5},{month:'2026-03',name:'Sokolov Andrei',loc:'Kloten',soll:101.5,ist:74.95,weiss:26.5},{month:'2026-03',name:'Anna Jurovicova',loc:'Kloten',soll:152.1,ist:111.1,weiss:41},{month:'2026-03',name:'Isabell Müller',loc:'Kloten',soll:84.9,ist:59.9,weiss:25},{month:'2026-03',name:'Robin Post',loc:'Kloten',soll:152.2,ist:122.7,weiss:29.5},{month:'2026-03',name:'Dominique Goncalves',loc:'Kloten',soll:84.6,ist:73.6,weiss:11},{month:'2026-03',name:'Sanja Muncan',loc:'Kloten',soll:67.8,ist:21.3,weiss:46.5},{month:'2026-03',name:'Fäbe Buchschacher',loc:'Kloten',soll:33.8,ist:6.8,weiss:27},{month:'2026-03',name:'Philippe Dobler',loc:'Kloten',soll:126.8,ist:110.8,weiss:16},{month:'2026-03',name:'Lozic Antonio',loc:'Kloten',soll:127,ist:93,weiss:34},{month:'2026-03',name:'Chamite Haszna',loc:'Zürich',soll:17,ist:10,weiss:7},{month:'2026-03',name:'Dannenbauer Lara',loc:'Zürich',soll:76.4,ist:64.4,weiss:12},{month:'2026-03',name:'Deplazes David',loc:'Zürich',soll:93.4,ist:73.9,weiss:19.5},{month:'2026-03',name:'Gallmetzer Sophia',loc:'Zürich',soll:101.8,ist:80.8,weiss:21},{month:'2026-03',name:'Keller Maya',loc:'Zürich',soll:-45.4,ist:-45.4,weiss:0},{month:'2026-03',name:'Loesch Nadja',loc:'Zürich',soll:80.4,ist:66.9,weiss:13.5},{month:'2026-03',name:'Nguyen Ryan',loc:'Zürich',soll:72.1,ist:67.1,weiss:5},{month:'2026-03',name:'Tomas Ciuzelis',loc:'Zürich',soll:139.6,ist:110.1,weiss:29.5},{month:'2026-03',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:33.8,weiss:0},{month:'2026-03',name:'Cleo Mathys',loc:'Zürich',soll:118.4,ist:64.4,weiss:54},{month:'2026-03',name:'Waterhouse Alex',loc:'Zürich',soll:93.4,ist:81.4,weiss:12},{month:'2026-03',name:'Zürcher Nadine',loc:'Zürich',soll:110,ist:62.5,weiss:47.5},{month:'2026-04',name:'Bakarcic Damir',loc:'Kloten',soll:97.2,ist:67.7,weiss:29.5},{month:'2026-04',name:'Florian Mader',loc:'Kloten',soll:160.6,ist:126.6,weiss:34},{month:'2026-04',name:'Gabriela Wimberska',loc:'Kloten',soll:135.4,ist:113.9,weiss:21.5},{month:'2026-04',name:'Crameri Genny',loc:'Kloten',soll:67.9,ist:66.9,weiss:1},{month:'2026-04',name:'Sokolov Andrei',loc:'Kloten',soll:34.3,ist:19.75,weiss:14.5},{month:'2026-04',name:'Anna Jurovicova',loc:'Kloten',soll:152.1,ist:114.1,weiss:38},{month:'2026-04',name:'Isabell Müller',loc:'Kloten',soll:110.1,ist:84.1,weiss:26},{month:'2026-04',name:'Robin Post',loc:'Kloten',soll:127,ist:94,weiss:33},{month:'2026-04',name:'Dominique Goncalves',loc:'Kloten',soll:93,ist:83,weiss:10},{month:'2026-04',name:'Fäbe Buchschacher',loc:'Kloten',soll:25.4,ist:13.9,weiss:11.5},{month:'2026-04',name:'Philippe Dobler',loc:'Kloten',soll:59.6,ist:50.6,weiss:9},{month:'2026-04',name:'Lozic Antonio',loc:'Kloten',soll:152.2,ist:136.2,weiss:16},{month:'2026-04',name:'Chamite Haszna',loc:'Zürich',soll:17,ist:10,weiss:7},{month:'2026-04',name:'Dannenbauer Lara',loc:'Zürich',soll:76.4,ist:64.4,weiss:12},{month:'2026-04',name:'Deplazes David',loc:'Zürich',soll:93.4,ist:73.9,weiss:19.5},{month:'2026-04',name:'Gallmetzer Sophia',loc:'Zürich',soll:101.8,ist:80.8,weiss:21},{month:'2026-04',name:'Keller Maya',loc:'Zürich',soll:-45.4,ist:-45.4,weiss:0},{month:'2026-04',name:'Loesch Nadja',loc:'Zürich',soll:80.4,ist:66.9,weiss:13.5},{month:'2026-04',name:'Nguyen Ryan',loc:'Zürich',soll:72.1,ist:67.1,weiss:5},{month:'2026-04',name:'Tomas Ciuzelis',loc:'Zürich',soll:139.6,ist:110.1,weiss:29.5},{month:'2026-04',name:'Schälin Alzu',loc:'Zürich',soll:33.8,ist:33.8,weiss:0},{month:'2026-04',name:'Cleo Mathys',loc:'Zürich',soll:118.4,ist:64.4,weiss:54},{month:'2026-04',name:'Waterhouse Alex',loc:'Zürich',soll:93.4,ist:81.4,weiss:12},{month:'2026-04',name:'Zürcher Nadine',loc:'Zürich',soll:110,ist:62.5,weiss:47.5}];
