@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260826143334">
+<meta name="app-build" content="20260903131834">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -1241,22 +1241,22 @@ td{padding:8px 12px;vertical-align:middle}
     <div style="padding:4px 18px 16px;border-top:1px solid #e5e7eb;line-height:1.75">
       <p style="margin:12px 0 6px;font-weight:700;color:#374151">Schritt für Schritt</p>
       <ol style="margin:0 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:5px">
-        <li><strong>Arbeitszeit geplant</strong> = gesamte Präsenzzeit des Therapeuten, bereits bereinigt um Ferien und Krankheit.</li>
-        <li>Davon werden <strong>Admin-</strong> und <strong>Allgemeinzeit</strong> abgezogen &mdash; was übrig bleibt ist <strong style="color:#1d4ed8">Effektiv H</strong>: die Zeit, die theoretisch mit Patienten hätte gefüllt werden können.</li>
-        <li>Innerhalb von Effektiv H gibt es <strong>gefüllte Zeit</strong> (Termine, inkl. Absagen) und <strong>leere Zeit</strong> = Weisse Fläche.</li>
+        <li><strong>Arbeitszeit gesamt geplant</strong> = gesamte Präsenzzeit des Therapeuten (inkl. Büro-/Pufferzeit), bereits bereinigt um Ferien und Krankheit.</li>
+        <li>Davon werden <strong>Admin-</strong> und <strong>Allgemeinzeit</strong> abgezogen &mdash; was übrig bleibt ist <strong style="color:#1d4ed8">Effektiv H</strong> = <strong>Verfügbare Patientenzeit</strong>: die Zeit, die theoretisch mit Patienten hätte gefüllt werden können.</li>
+        <li>Innerhalb von Effektiv H gibt es <strong>gefüllte Zeit</strong> (Termine, inkl. Absagen) = <strong>Genutzte Patientenzeit</strong> und <strong>leere Zeit</strong> = Weisse Fläche. Genutzte Patientenzeit = Effektiv H minus Weisse Fläche.</li>
         <li>Die Auslastung zeigt: <em>Wie viel der verfügbaren Patientenzeit war tatsächlich gefüllt?</em></li>
       </ol>
       <p style="margin:0 0 6px;font-weight:700;color:#374151">Formel</p>
       <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 14px;font-size:13px;color:#111827;margin-bottom:12px">
-        Auslastung = <strong>Effektiv H &divide; (Effektiv H + Weisse Fläche) &times; 100</strong>
+        Auslastung = <strong>(Effektiv H &minus; Weisse Fläche) &divide; Effektiv H &times; 100</strong>
       </div>
       <p style="margin:0 0 6px;font-weight:700;color:#374151">Warum ist das die fairste Formel?</p>
       <ul style="margin:0 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:5px">
         <li>Admin- und Allgemeintermine zählen <strong>nicht zum Nenner</strong> &mdash; dort können sowieso keine Patienten eingeplant werden.</li>
         <li><strong>Abgesagte Termine zählen als gefüllte Zeit</strong> &mdash; der Therapeut war bereit, der Slot war vergeben.</li>
-        <li>Nur echte leere Fläche (Weisse Fläche) drückt die Auslastung runter. Die Weisse Fläche wird vom <strong>Betriebsleiter direkt erfasst</strong> (nicht aus Cenplex).</li>
+        <li>Nur echte leere Fläche (Weisse Fläche) drückt die Auslastung runter. Die Weisse Fläche wird vom <strong>Betriebsleiter direkt erfasst</strong> (nicht aus Cenplex) und ist eine <strong>Teilmenge</strong> von Effektiv H, keine zusätzliche Zeit.</li>
       </ul>
-      <p style="margin:0;color:#9ca3af;font-style:italic">Beispiel: 64.5 h Effektiv + 3.5 h Weisse Fläche = 68 h verfügbar &rarr; 64.5 &divide; 68 &times; 100 = <strong style="color:#374151">94.9 %</strong></p>
+      <p style="margin:0;color:#9ca3af;font-style:italic">Beispiel: 64.5 h Effektiv, davon 3.5 h Weisse Fläche &rarr; genutzt: 64.5 &minus; 3.5 = 61 h &rarr; 61 &divide; 64.5 &times; 100 = <strong style="color:#374151">94.6 %</strong></p>
     </div>
   </details>
   <div style="margin:0 28px 6px">
@@ -1281,7 +1281,7 @@ td{padding:8px 12px;vertical-align:middle}
   </div>
   <div id="m13-upload-wrap" class="entry-form admin-only" style="margin:0 28px;display:none">
     <div style="font-weight:700;font-size:14px;margin-bottom:4px">Cenplex-Export hochladen</div>
-    <div style="font-size:12px;color:#6b7280;margin-bottom:12px">Erwartete Spalten: [Therapeut] Vorname · [Therapeut] Nachname · Arbeitszeit geplant · Admintermine · Allgemeintermine</div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:12px">Erwartete Spalten: [Therapeut] Vorname · [Therapeut] Nachname · Arbeitszeit gesamt geplant · Admintermine · Allgemeintermine</div>
     <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px">
       <div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Monat</label><input type="month" id="m13-up-month" min="2026-01" style="border:1.5px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit"></div>
       <div><label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Excel-Datei (Cenplex)</label><input type="file" id="m13-up-file" accept=".xlsx,.xls" style="font-size:13px"></div>
@@ -3976,7 +3976,7 @@ function getM13UtilForName(m10Name, loc, month) {
   if(!d) return null;
   var eff=Math.max(0,d.geplant-d.admin-d.allgemein);
   var weiss=getWeissForPerson(d.vorname,d.nachname,month,d.loc);
-  return (eff>0&&weiss!=null)?Math.round(eff/(eff+weiss)*1000)/10:null;
+  return (eff>0&&weiss!=null)?Math.round(Math.max(0,(eff-weiss)/eff)*1000)/10:null;
 }
 function getUtilForMonth(m10Name, loc, month) {
   if(month!=='all'){
@@ -6021,7 +6021,7 @@ function processM13Upload() {
       var iAd=hdr.findIndex(function(h){return h.includes('admintermin')||h.includes('adminzeit');});
       var iAl=hdr.findIndex(function(h){return h.includes('allgemeintermin')||h.includes('allgemeinzeit');});
       if(iVn<0||iNn<0||iGp<0||iAd<0||iAl<0){
-        msgEl.style.color='#ef4444';msgEl.textContent='Spalten nicht gefunden. Erwartet: Vorname, Nachname, Arbeitszeit geplant, Admintermine, Allgemeintermine.';return;
+        msgEl.style.color='#ef4444';msgEl.textContent='Spalten nicht gefunden. Erwartet: Vorname, Nachname, Arbeitszeit gesamt geplant, Admintermine, Allgemeintermine.';return;
       }
       var newEntries=[];
       rows.slice(1).forEach(function(r){
@@ -6166,7 +6166,7 @@ function renderM13() {
   var persons=monthData.map(function(d){
     var eff=Math.max(0,d.geplant-d.admin-d.allgemein);
     var weiss=getWeissForPerson(d.vorname,d.nachname,selMonth,d.loc);
-    var aus=(eff>0&&weiss!=null)?eff/(eff+weiss)*100:null;
+    var aus=(eff>0&&weiss!=null)?Math.max(0,(eff-weiss)/eff)*100:null;
     var role=AUSLASTUNG_NON_BONUS[d.nachname]||null;
     return {name:d.vorname+' '+d.nachname,nachname:d.nachname,vorname:d.vorname,loc:d.loc,geplant:d.geplant,admin:d.admin,allgemein:d.allgemein,eff:eff,weiss:weiss,aus:aus,role:role};
   });
@@ -6192,7 +6192,7 @@ function renderM13() {
     mkpiHtml('','Ø Zürich'+modeLabel,
       zhAvg!=null?'<span style="color:'+pC(zhAvg)+'">'+zhAvg.toFixed(1)+'%</span>':'<span style="color:#9ca3af">k.A.</span>',
       mLbl+' · '+zhAll.filter(function(p){return p.aus!=null;}).length+' Personen')+
-    mkpiHtml('','Formel','Effektiv ÷ (Effektiv + Weisse Fläche)','Effektiv = Geplant − Admin − Allgemein')+
+    mkpiHtml('','Formel','(Effektiv − Weisse Fläche) ÷ Effektiv','Effektiv = Arbeitszeit gesamt geplant − Admin − Allgemein')+
     mkpiHtml('','Legende','<span style="color:#16a34a">●</span> ≥85%&nbsp;&nbsp;<span style="color:#d97706">●</span> 70–85%&nbsp;&nbsp;<span style="color:#ef4444">●</span> &lt;70%','');
 
   // ---- Row builder ----
@@ -6208,8 +6208,8 @@ function renderM13() {
       ?p.eff.toFixed(1)+'h eff&nbsp;·&nbsp;'+p.weiss.toFixed(1)+'h frei&nbsp;·&nbsp;'+p.admin.toFixed(1)+'h Admin'
       :p.eff.toFixed(1)+'h eff&nbsp;·&nbsp;<span style="color:#d97706">Weisse Fläche fehlt</span>';
     var ttip=p.aus!=null
-      ?p.geplant.toFixed(1)+'h geplant − '+p.admin.toFixed(1)+'h Admin − '+p.allgemein.toFixed(1)+'h Allg. = '+p.eff.toFixed(1)+'h effektiv&#10;Weisse Fläche: '+p.weiss.toFixed(1)+'h&#10;'+p.eff.toFixed(1)+' ÷ ('+p.eff.toFixed(1)+' + '+p.weiss.toFixed(1)+') × 100 = '+p.aus.toFixed(1)+'%'
-      :p.geplant.toFixed(1)+'h geplant − '+p.admin.toFixed(1)+'h Admin − '+p.allgemein.toFixed(1)+'h Allg. = '+p.eff.toFixed(1)+'h effektiv&#10;Weisse Fläche fehlt';
+      ?p.geplant.toFixed(1)+'h gesamt geplant − '+p.admin.toFixed(1)+'h Admin − '+p.allgemein.toFixed(1)+'h Allg. = '+p.eff.toFixed(1)+'h effektiv&#10;Weisse Fläche: '+p.weiss.toFixed(1)+'h&#10;('+p.eff.toFixed(1)+' − '+p.weiss.toFixed(1)+') ÷ '+p.eff.toFixed(1)+' × 100 = '+p.aus.toFixed(1)+'%'
+      :p.geplant.toFixed(1)+'h gesamt geplant − '+p.admin.toFixed(1)+'h Admin − '+p.allgemein.toFixed(1)+'h Allg. = '+p.eff.toFixed(1)+'h effektiv&#10;Weisse Fläche fehlt';
     return '<div class="m13-row'+(p.role?' m13-dim':'')+'" title="'+ttip+'">'
       +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:7px">'
       +'<span style="font-weight:600;font-size:13px;line-height:1.2">'+p.name+badge+'</span>'
