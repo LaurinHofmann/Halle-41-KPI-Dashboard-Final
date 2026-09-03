@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260903141238">
+<meta name="app-build" content="20260903141638">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -1823,7 +1823,13 @@ function updateHomeTiles() {
         return tot.toLocaleString('de-CH')+' VOs · Ø '+avg.toFixed(2)+' Termine'; }},
     { id:'ht10-kv', key:'m10', fn: d => null },
 
-    { id:'ht11-kv', key:'m11', fn: d => { const jun=PAT_RAW.filter(r=>r.m==='2026-06'); const tot=jun.reduce((s,r)=>s+r.total,0); const abs=jun.reduce((s,r)=>s+r.abs,0); return tot>0?(abs/tot*100).toFixed(1)+'% Absagequote · Jun 26':null; } },
+    { id:'ht11-kv', key:'m11', fn: d => {
+        const all=getM11AllRecords(); if(!all.length) return null;
+        const months=[...new Set(all.map(r=>r.m))].sort(); const lastM=months[months.length-1];
+        const rows=all.filter(r=>r.m===lastM);
+        const tot=rows.reduce((s,r)=>s+r.total,0), abs=rows.reduce((s,r)=>s+r.abs,0);
+        const[y,mo]=lastM.split('-'); const lbl=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][parseInt(mo)-1]+' '+y.slice(2);
+        return tot>0?(abs/tot*100).toFixed(1)+'% Absagequote · '+lbl:null; } },
   ];
   tiles.forEach(t => {
     const el = document.getElementById(t.id);
