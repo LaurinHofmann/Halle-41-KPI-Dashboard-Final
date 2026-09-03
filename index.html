@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260903131834">
+<meta name="app-build" content="20260903135652">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -1140,16 +1140,7 @@ td{padding:8px 12px;vertical-align:middle}
 
 <!-- ===== MODULE 10: THERAPEUTEN-SCORECARD ===== -->
 <div id="view-m10" style="display:none">
-  <div style="display:flex;gap:6px;padding:10px 28px 0;flex-wrap:wrap" id="m10-month-bar">
-    <button onclick="setM10Month('all',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #111827;background:#111827;color:#fff;font-size:12.5px;font-weight:600;cursor:pointer">Gesamt Jan–Jun</button>
-    <button onclick="setM10Month('2026-01',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Januar</button>
-    <button onclick="setM10Month('2026-02',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Februar</button>
-    <button onclick="setM10Month('2026-03',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">März</button>
-    <button onclick="setM10Month('2026-04',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">April</button>
-    <button onclick="setM10Month('2026-05',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Mai</button>
-    <button onclick="setM10Month('2026-06',this)" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151">Juni</button>
-    <button onclick="openQuartalM10()" style="padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;margin-left:auto">📊 Quartal-Vergleich</button>
-  </div>
+  <div style="display:flex;gap:6px;padding:10px 28px 0;flex-wrap:wrap" id="m10-month-bar"></div>
   <div class="mod-kpis" id="m10-kpis"></div>
   <div id="m10-content"></div>
   <div id="m10-kpi-scorecard"></div>
@@ -4035,18 +4026,39 @@ function getUtilPct(m10Name, loc) {
     return vals.length ? Math.round(vals.reduce(function(a,b){return a+b;},0)/vals.length*10)/10 : null;
   }
 }
+function buildM10MonthBar(months) {
+  var bar = document.getElementById('m10-month-bar');
+  if (!bar) return;
+  var moFull = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  var moShort = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var gesamtLbl = months.length>1 ? 'Gesamt '+moShort[parseInt(months[0].split('-')[1])-1]+'–'+moShort[parseInt(months[months.length-1].split('-')[1])-1] : 'Gesamt';
+  var btnStyle='padding:5px 14px;border-radius:6px;border:1.5px solid #d1d5db;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;color:#374151';
+  var html = '<button onclick="setM10Month(\'all\',this)" data-m="all" style="'+btnStyle+'">'+gesamtLbl+'</button>';
+  months.forEach(function(m){
+    var mo = parseInt(m.split('-')[1])-1;
+    html += '<button onclick="setM10Month(\''+m+'\',this)" data-m="'+m+'" style="'+btnStyle+'">'+moFull[mo]+'</button>';
+  });
+  html += '<button onclick="openQuartalM10()" style="'+btnStyle+';margin-left:auto">📊 Quartal-Vergleich</button>';
+  bar.innerHTML = html;
+  var activeBtn = bar.querySelector('[data-m="'+gM10Month+'"]');
+  if (activeBtn) { activeBtn.style.background='#111827'; activeBtn.style.color='#fff'; activeBtn.style.borderColor='#111827'; }
+}
+
 function renderM10() {
   const scRaw = loadModData('m10');
   const voAll = loadModData('vo');
   const earlyAll = loadModData('vo_early');
   const moLbl = m=>{const[,mo]=m.split('-');return['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][parseInt(mo)-1];};
-  const MONTHS = ['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
+  const MONTHS = [...new Set(scRaw.map(r=>r.month))].sort();
+  buildM10MonthBar(MONTHS);
+  if (gM10Month!=='all' && !MONTHS.includes(gM10Month)) gM10Month='all';
 
   const allNames = [...new Set(scRaw.map(r=>r.therapist))];
   const locFiltered = gLoc==='all' ? scRaw : scRaw.filter(r=>r.location===(gLoc==='Zuerich'?'Zuerich':'Kloten'));
   const raw = gM10Month==='all' ? locFiltered : locFiltered.filter(r=>r.month===gM10Month);
   const names = [...new Set(raw.map(r=>r.therapist))];
-  const moLblSel = gM10Month==='all' ? 'Jan–Jun 2026' : ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][parseInt(gM10Month.split('-')[1])-1]+' 2026';
+  const moLblRange = MONTHS.length ? moLbl(MONTHS[0])+'–'+moLbl(MONTHS[MONTHS.length-1])+' '+MONTHS[MONTHS.length-1].split('-')[0] : '';
+  const moLblSel = gM10Month==='all' ? moLblRange : moLbl(gM10Month)+' '+gM10Month.split('-')[0];
 
   if(!names.length){document.getElementById('m10-kpis').innerHTML='';document.getElementById('m10-content').innerHTML=modEmpty('m10');return;}
 
