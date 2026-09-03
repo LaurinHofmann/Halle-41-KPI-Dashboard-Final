@@ -1900,7 +1900,7 @@ function updateHomeTiles() {
         var vals=arr.map(function(r){
           var eff=Math.max(0,r.geplant-r.admin-r.allgemein);
           var weiss=getWeissForPerson(r.vorname,r.nachname,latestM13,r.loc);
-          return (eff>0&&weiss!=null)?eff/(eff+weiss)*100:null;
+          return (eff>0&&weiss!=null)?Math.max(0,(eff-weiss)/eff)*100:null;
         }).filter(function(v){return v!=null;});
         return vals.length?vals.reduce(function(a,b){return a+b;})/vals.length:null;
       }
@@ -2754,7 +2754,7 @@ function openQuartalM13() {
   var recs = getAuslastungAllData().filter(function(r){ return r.geplant>0; }).map(function(r){
     var eff = Math.max(0, r.geplant - r.admin - r.allgemein);
     var weiss = getWeissForPerson(r.vorname, r.nachname, r.month, r.loc);
-    var aus = (eff>0 && weiss!=null) ? eff/(eff+weiss)*100 : null;
+    var aus = (eff>0 && weiss!=null) ? Math.max(0,(eff-weiss)/eff)*100 : null;
     return { month: r.month, loc: r.loc, aus: aus };
   }).filter(function(r){ return r.aus!=null; });
   openQuartalVergleich({ title:'Auslastung', records: recs, monthField:'month', valueField:'aus', agg:'avg', format:'pct', betterWhen:'up', locations: qvLocSplit('loc') });
