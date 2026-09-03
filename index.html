@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260903135652">
+<meta name="app-build" content="20260903140918">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -2740,7 +2740,7 @@ function openQuartalM4() { openQuartalVergleich({ title:'MTT-Umsatz', records: l
 function openQuartalM5() { openQuartalVergleich({ title:'UVG-Termine', records: loadModData('m5'), monthField:'month', valueField:'termine', agg:'sum', format:'num', betterWhen:'up', locations: qvLocSplit('location') }); }
 function openQuartalM6() { openQuartalVergleich({ title:'Therapeuten-Umsatz', records: loadModData('m6'), monthField:'month', valueField:'revenue', agg:'sum', format:'chf', betterWhen:'up', locations: qvLocSplit('location') }); }
 function openQuartalM10() { openQuartalVergleich({ title:'Scorecard-Umsatz', records: loadModData('m10'), monthField:'month', valueField:'revenue', agg:'sum', format:'chf', betterWhen:'up', locations: qvLocSplit('location') }); }
-function openQuartalM11() { openQuartalVergleich({ title:'Absagequote', records: PAT_RAW.concat(loadModData('m11manual')).map(function(r){ return { m:r.m, loc:r.loc, absRate: r.total>0 ? r.abs/r.total*100 : null }; }).filter(function(r){ return r.absRate!=null; }), monthField:'m', valueField:'absRate', agg:'avg', format:'pct', betterWhen:'down', locations: qvLocSplit('loc') }); }
+function openQuartalM11() { openQuartalVergleich({ title:'Absagequote', records: getM11AllRecords().map(function(r){ return { m:r.m, loc:r.loc, absRate: r.total>0 ? r.abs/r.total*100 : null }; }).filter(function(r){ return r.absRate!=null; }), monthField:'m', valueField:'absRate', agg:'avg', format:'pct', betterWhen:'down', locations: qvLocSplit('loc') }); }
 function openQuartalM13() {
   var recs = getAuslastungAllData().filter(function(r){ return r.geplant>0; }).map(function(r){
     var eff = Math.max(0, r.geplant - r.admin - r.allgemein);
@@ -3994,7 +3994,7 @@ function getUtilForMonth(m10Name, loc, month) {
 function getAbsRate(m10Name, m10Loc, month) {
   var fn=m10Name.trim().split(/\s+/)[0].toLowerCase();
   var patLoc=m10Loc==='Zuerich'?'Zürich':'Kloten';
-  var rows=PAT_RAW.filter(function(r){return r.t.toLowerCase()===fn&&r.loc===patLoc&&(month==='all'||r.m===month);});
+  var rows=getM11AllRecords().filter(function(r){return r.t.toLowerCase()===fn&&r.loc===patLoc&&(month==='all'||r.m===month);});
   var tot=rows.reduce(function(s,r){return s+r.total;},0),abs=rows.reduce(function(s,r){return s+r.abs;},0);
   return tot>=10?Math.round(abs/tot*1000)/10:null;
 }
@@ -4288,7 +4288,7 @@ function toggleM11Sort(col){
 }
 function renderM11() {
   var locMap = {'Zuerich':'Zürich','Kloten':'Kloten'};
-  var allM11 = PAT_RAW.concat(loadModData('m11manual'));
+  var allM11 = getM11AllRecords();
   var filtered = gLoc==='all' ? allM11 : allM11.filter(function(r){ return r.loc===locMap[gLoc]; });
   var kpis=document.getElementById('m11-kpis'), content=document.getElementById('m11-content');
   if(!filtered.length){ kpis.innerHTML=''; content.innerHTML=modEmpty('m11'); return; }
@@ -4321,10 +4321,12 @@ function renderM11() {
   var avgOnl=totTotal>0?totOnl/totTotal*100:0;
   var locLbl=gLoc==='all'?'Zürich & Kloten':gLoc==='Zuerich'?'Zürich':'Kloten';
   var showLoc=gLoc==='all';
+  var presentMonths=M11_MONTHS.filter(function(m){return byMonth[m].total>0;});
+  var rangeLbl=presentMonths.length?M11_MLBL[M11_MONTHS.indexOf(presentMonths[0])]+'–'+M11_MLBL[M11_MONTHS.indexOf(presentMonths[presentMonths.length-1])]:'';
 
   // KPIs
   kpis.innerHTML=
-    mkpiHtml('','Total Termine',fmtNum(totTotal,0),'Jan–Jun 2026 · '+locLbl)+
+    mkpiHtml('','Total Termine',fmtNum(totTotal,0),rangeLbl+' · '+locLbl)+
     mkpiHtml('','Ø Absagequote','<span style="color:'+absC(avgAbs)+'">'+avgAbs.toFixed(1)+'%</span>',fmtNum(totAbs,0)+' abgesagte Termine')+
     mkpiHtml('','Ø Online-Buchungen','<span style="color:'+onlC(avgOnl)+'">'+avgOnl.toFixed(1)+'%</span>',fmtNum(totOnl,0)+' online gebucht')+
     mkpiHtml('','Therapeuten',mainT.length+'',locLbl+' · ≥20 Termine');
@@ -4395,7 +4397,7 @@ function renderM11() {
     ['Zürich','Kloten'].forEach(function(loc){
       var locT=mainT.filter(function(r){return r.loc===loc;}); if(!locT.length) return;
       var hdrCol=loc==='Zürich'?'#1e3a5f':'#111827';
-      trows+='<tr style="background:'+hdrCol+';color:#fff"><td colspan="9" style="padding:8px 12px;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase">'+loc+'</td></tr>';
+      trows+='<tr style="background:'+hdrCol+';color:#fff"><td colspan="'+(M11_MONTHS.length+4)+'" style="padding:8px 12px;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase">'+loc+'</td></tr>';
       trows+=buildRows(locT);
       trows+=makeSumRow('Ø '+loc,locT,loc==='Zürich'?'#eff6ff':'#f0fdf4',loc==='Zürich'?'#bfdbfe':'#bbf7d0',loc==='Zürich'?'#2563eb':'#16a34a');
     });
@@ -4410,7 +4412,7 @@ function renderM11() {
 
   content.innerHTML=
     '<div style="margin:0 28px 16px"><div class="chart-card">'
-    +'<div class="chart-card-hdr">Monatliche Übersicht <span class="cc-sub">'+locLbl+' · Jan–Mai 2026</span></div>'
+    +'<div class="chart-card-hdr">Monatliche Übersicht <span class="cc-sub">'+locLbl+' · '+rangeLbl+'</span></div>'
     +'<div style="display:flex;gap:10px;flex-wrap:wrap;padding:4px 0">'+cards+'</div>'
     +'</div></div>'
     +'<div style="margin:0 28px 16px"><div class="chart-card">'
@@ -5646,8 +5648,8 @@ const UTIL_KM_SET = new Set(['Crameri Genny','Fäbe Buchschacher','Schälin Alzu
 const UTIL_CURRENT_SET = new Set(['Anna Jurovicova','Bakarcic Damir','Chamite Haszna','Cleo Mathys','Crameri Genny','Dannenbauer Lara','Deplazes David','Dominique Goncalves','Fäbe Buchschacher','Florian Mader','Gabriela Wimberska','Gallmetzer Sophia','Haller Johanna','Isabell Müller','Keller Maya','Loesch Nadja','Lozic Antonio','Noah','Nguyen Ryan','Philippe Dobler','Robin Post','Schälin Alzu','Sokolov Andrei','Tomas Ciuzelis']);
 const UTIL_MONTHS = ['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
 const UTIL_MLBL = ['Jan 26','Feb 26','Mär 26','Apr 26','Mai 26','Jun 26'];
-const M11_MONTHS = ['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
-const M11_MLBL   = ['Jan 26','Feb 26','Mär 26','Apr 26','Mai 26','Jun 26'];
+const M11_MONTHS = ['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08'];
+const M11_MLBL   = ['Jan 26','Feb 26','Mär 26','Apr 26','Mai 26','Jun 26','Jul 26','Aug 26'];
 const PAT_RAW = [
   {t:"Andrei",m:"2026-01",loc:"Kloten",total:128,abs:8,online:4},
   {t:"Andrei",m:"2026-02",loc:"Kloten",total:39,abs:2,online:1},
@@ -5765,6 +5767,13 @@ const PAT_RAW = [
   {t:"Sophia",m:"2026-06",loc:"Zürich",total:406,abs:29,online:78},
   {t:"Tomas",m:"2026-06",loc:"Zürich",total:222,abs:25,online:40},
 ];
+// m11manual-Einträge überschreiben PAT_RAW-Einträge mit gleichem Monat+Standort+Vorname (verhindert Doppelzählung bei Neu-Upload)
+function getM11AllRecords() {
+  var manual = loadModData('m11manual');
+  var keys = new Set(manual.map(function(r){ return r.t+'|'+r.loc+'|'+r.m; }));
+  var base = PAT_RAW.filter(function(r){ return !keys.has(r.t+'|'+r.loc+'|'+r.m); });
+  return base.concat(manual);
+}
 // ─── ZÜRICH: Auslastung_2026 ZH.xlsx ───────────────────────────────────────
 // Formel ZH: (Front Netto − Weisse Zeit) / Front Netto
 // ⚠️ ABWEICHENDE METHODE von Kloten (Kloten: Ist / Soll) → Vergleich prüfen!
