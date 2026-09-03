@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260903140918">
+<meta name="app-build" content="20260903141238">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -5767,12 +5767,17 @@ const PAT_RAW = [
   {t:"Sophia",m:"2026-06",loc:"Zürich",total:406,abs:29,online:78},
   {t:"Tomas",m:"2026-06",loc:"Zürich",total:222,abs:25,online:40},
 ];
+// Personen komplett aus der Patientenübersicht ausgeblendet (kein Tracking gewünscht)
+const PAT_EXCLUDE = new Set(['Fabian','Robin','Nicole','Thomas','Alexander','Dominic']);
+// Vorname+Standort-spezifisch ausgeblendet (Vorname existiert auch bei anderer Person am anderen Standort)
+const PAT_EXCLUDE_LOC = new Set(['Noah|Kloten']); // Noah Villiger (Kloten) ausgeblendet, Noah Aldaro (Zürich) bleibt
+
 // m11manual-Einträge überschreiben PAT_RAW-Einträge mit gleichem Monat+Standort+Vorname (verhindert Doppelzählung bei Neu-Upload)
 function getM11AllRecords() {
   var manual = loadModData('m11manual');
   var keys = new Set(manual.map(function(r){ return r.t+'|'+r.loc+'|'+r.m; }));
   var base = PAT_RAW.filter(function(r){ return !keys.has(r.t+'|'+r.loc+'|'+r.m); });
-  return base.concat(manual);
+  return base.concat(manual).filter(function(r){ return !PAT_EXCLUDE.has(r.t) && !PAT_EXCLUDE_LOC.has(r.t+'|'+r.loc); });
 }
 // ─── ZÜRICH: Auslastung_2026 ZH.xlsx ───────────────────────────────────────
 // Formel ZH: (Front Netto − Weisse Zeit) / Front Netto
