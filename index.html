@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260903160753">
+<meta name="app-build" content="20260904091235">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -937,6 +937,14 @@ td{padding:8px 12px;vertical-align:middle}
       <div class="ht-dsc">Absage- & Online-Buchungsquote pro Therapeut · monatlich · Zürich & Kloten</div>
       <div id="ht11-kv" class="ht-nd"></div>
     </div>
+    <!-- ── Strategie ── -->
+    <div class="ht ht-bl ht-admin" onclick="enterMod('m12','⚖️ KVG-Taktung 2027')">
+      <span class="ht-exists">Aktiv</span>
+      <div class="ht-ico">⚖️</div>
+      <div class="ht-tit">KVG-Taktung 2027</div>
+      <div class="ht-dsc">Neue Zeittarif-Struktur optimal nutzen — Modell & Beispieltag</div>
+      <div id="ht12-kv" class="ht-kv" style="color:#16a34a"></div>
+    </div>
   </div>
 </div>
 
@@ -1180,6 +1188,26 @@ td{padding:8px 12px;vertical-align:middle}
     </div>
   </div>
   <div id="m11-content"></div>
+</div>
+
+<!-- ===== MODULE 12: KVG-TAKTUNG 2027 ===== -->
+<div id="view-m12" style="display:none">
+  <div style="margin:12px 28px 4px;padding:11px 14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;font-size:12px">
+    <div style="font-weight:700;color:#92400e;margin-bottom:4px">⚖️ Neue KVG-Zeittarifstruktur ab 01.01.2027 — Planungsmodell (nur KVG, ~70% des Volumens; UVG unverändert)</div>
+    <div style="color:#78350f;line-height:1.7">
+      <strong>27110</strong> Einzelbehandlung am Praxisstandort — CHF 7.36/5 Min., max. 50 Min./Sitzung (ersetzt 7301+7311) &nbsp;|&nbsp;
+      <strong>27710</strong> Leistung in Abwesenheit — CHF 7.19/5 Min., Deckel max. 60 Min. je 9er-Serie &nbsp;|&nbsp;
+      <strong>27310</strong> MTT-Einzelbetreuung — CHF 7.52/5 Min., max. 45 Min., max. 4 Sitzungen/VO &nbsp;|&nbsp;
+      <strong>27320</strong> MTT-Einzeleintritt — CHF 27.93 pauschal, max. 36/VO &nbsp;|&nbsp;
+      Taxpunktwert vorerst unverändert: CHF 1.11 (Kanton Zürich)
+    </div>
+  </div>
+  <div style="margin:0 28px 4px;padding:11px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:12px">
+    <div style="font-weight:700;color:#991b1b;margin-bottom:3px">⚠ Abrechnungshinweis zu 27710</div>
+    <div style="color:#7f1d1d;line-height:1.6">27710 gilt nur für <strong>effektiv erbrachte und dokumentierte</strong> Arbeit ohne Patientenanwesenheit (Zielgespräche, Berichte, interprofessioneller Austausch, Heimprogramme). Sie ist <strong>kein Zeitfüller</strong> — mechanisch an jede Sitzung angehängt ohne entsprechenden Aufwand ist sie ein Prüfungs-/Compliance-Risiko. Der 60-Min./9er-Serie-Deckel (je Serie separat gerechnet, wie unten modelliert) ist noch nicht am Originaltarifdokument verifiziert.</div>
+  </div>
+  <div class="mod-kpis" id="m12-kpis"></div>
+  <div id="m12-content"></div>
 </div>
 
 <!-- ===== MODULE 13: AUSLASTUNGSANALYSE ===== -->
@@ -1679,7 +1707,7 @@ function setGLoc(l, btn) {
 
 /* ===================== VIEW TOGGLE ===================== */
 function allModViews() {
-  return ['home','einbruch','besuche','m2','m3','m4','m5','m6','m8','m10','m11','m13'];
+  return ['home','einbruch','besuche','m2','m3','m4','m5','m6','m8','m10','m11','m12','m13'];
 }
 
 function setView(v, el) {
@@ -1719,7 +1747,7 @@ function setView(v, el) {
 function goHome() {
   activeModKey = null;
   // Explizit alle Modul-Inhalte leeren und Ansichten verstecken
-  ['m2','m3','m4','m5','m6','m8','m10','m11','m13'].forEach(function(k){
+  ['m2','m3','m4','m5','m6','m8','m10','m11','m12','m13'].forEach(function(k){
     var v=document.getElementById('view-'+k);
     if(v) v.style.display='none';
     var kp=document.getElementById(k+'-kpis');
@@ -1835,6 +1863,9 @@ function updateHomeTiles() {
   if (periodEl) periodEl.textContent = M8_ZEITRAUM;
   if (activeModKey === 'm8') renderM8();
 
+  // m12: eingebettetes Planungsmodell, Kachel direkt setzen
+  const ht12t = document.getElementById('ht12-kv');
+  if (ht12t) { ht12t.className='ht-kv'; ht12t.style.color='#16a34a'; ht12t.textContent=chf(t12DayRevenue(),0)+' · Beispieltag'; }
   // m13: Auslastung tile — aktuellster Monat aus allen Daten (Cenplex-Basis + Live-Uploads)
   var ht13=document.getElementById('ht13-kv');
   if(ht13 && typeof getAuslastungAllData==='function'){
@@ -2548,6 +2579,7 @@ function renderMod(key) {
   else if (key==='m8') renderM8();
   else if (key==='m10') renderM10();
   else if (key==='m11') renderM11();
+  else if (key==='m12') renderM12();
   else if (key==='m13') renderM13();
 
 }
@@ -5360,6 +5392,158 @@ function saveSettingsMM() {
   closeSettings();
   if (currentView && currentView.startsWith('m')) renderMod(currentView);
   updateHomeTiles();
+}
+
+/* ===================== MODULE 12 – KVG-TAKTUNG 2027 ===================== */
+// Planungsmodell für die neue KVG-Zeittarifstruktur ab 01.01.2027. Taxpunktwert vorerst fix bei CHF 1.11 (Kanton Zürich).
+const T12_TPW = 1.11;
+const T12_CODES = {
+  e27110: {code:'27110', label:'Einzelbehandlung am Praxisstandort', rate5:7.36, maxMin:50},
+  e27710: {code:'27710', label:'Leistung in Abwesenheit des Patienten', rate5:7.19, capMinPerSerie:60, serieSize:9},
+  e27310: {code:'27310', label:'MTT-Einzelbetreuung durch den Physiotherapeuten', rate5:7.52, maxMin:45, maxSitzungen:4},
+  e27320: {code:'27320', label:'MTT-Einzeleintritt', flat:27.93, maxTotal:36},
+  e7301:  {code:'7301', label:'Alt: Folgebehandlung (~30 Min.)', flat:53.28},
+  e7311:  {code:'7311', label:'Alt: Ersttermin / frühe Behandlung (~60 Min., erste 5 Termine)', flat:85.47},
+};
+// Ø effektiver UVG-Umsatz/Termin (Jun–Aug 2026, Mix 30/60 Min.) — bewusst nicht weiter aufgeteilt, UVG bleibt vom KVG-Tarifwechsel unberührt
+const T12_UVG_AVG = 236.80;
+
+// Serie Einzelbehandlung (9 Termine): erste 6 auf 60 Min. aufgefüllt (50 Min. 27110 + 10 Min. 27710), letzte 3 auf 50 Min. (27110 only)
+function calcT12EinzelSerie() {
+  var perFull = 10*T12_CODES.e27110.rate5 + 2*T12_CODES.e27710.rate5;
+  var perShort = 10*T12_CODES.e27110.rate5;
+  return {sessions:9, perFull:perFull, perShort:perShort, revenue:6*perFull+3*perShort, minutes:6*60+3*50};
+}
+// Alt-Serie (9 Termine) zum Vergleich: erste 5 = 7311 (~60 Min.), letzte 4 = 7301 (~30 Min.)
+function calcT12EinzelSerieOld() {
+  return {sessions:9, revenue:5*T12_CODES.e7311.flat+4*T12_CODES.e7301.flat, minutes:5*60+4*30};
+}
+// MTT (bis zu 36 Termine/VO): erste 4 supervidiert (45 Min. 27310 + 15 Min. 27710 + Eintritt 27320), Rest nur Eintritt
+function calcT12MTT() {
+  var perSup = 9*T12_CODES.e27310.rate5 + 3*T12_CODES.e27710.rate5 + T12_CODES.e27320.flat;
+  var restN = T12_CODES.e27320.maxTotal - T12_CODES.e27310.maxSitzungen;
+  return {visits:T12_CODES.e27320.maxTotal, supN:T12_CODES.e27310.maxSitzungen, restN:restN, perSup:perSup,
+          revenue:T12_CODES.e27310.maxSitzungen*perSup + restN*T12_CODES.e27320.flat, ptMinutes:T12_CODES.e27310.maxSitzungen*60};
+}
+
+// Beispieltag: illustriert eine mögliche Taktung (kein Ist-Datenexport aus Cenplex)
+const T12_DAY = [
+  {t:'08:00',dur:60,type:'einzel_full',pat:'Patient A',note:'Serie 2/9'},
+  {t:'09:00',dur:60,type:'einzel_full',pat:'Patient B',note:'Serie 4/9'},
+  {t:'10:00',dur:50,type:'einzel_short',pat:'Patient C',note:'Serie 8/9'},
+  {t:'10:50',dur:10,type:'pause',pat:'',note:'Pause'},
+  {t:'11:00',dur:60,type:'mtt_sup',pat:'Patient D',note:'MTT 2/4 (supervidiert)'},
+  {t:'12:00',dur:60,type:'pause',pat:'',note:'Mittag'},
+  {t:'13:00',dur:60,type:'einzel_full',pat:'Patient E',note:'Ersttermin (Serie 1/9)'},
+  {t:'14:00',dur:60,type:'uvg60',pat:'Patient F',note:'UVG'},
+  {t:'15:00',dur:30,type:'uvg30',pat:'Patient G',note:'UVG'},
+  {t:'15:30',dur:50,type:'einzel_short',pat:'Patient H',note:'Serie 9/9'},
+  {t:'16:20',dur:10,type:'mtt_indep',pat:'Patient I',note:'MTT selbstständig (Check-in)'},
+  {t:'16:30',dur:60,type:'einzel_full',pat:'Patient J',note:'Serie 3/9'},
+  {t:'17:30',dur:30,type:'admin',pat:'',note:'Adminzeit'},
+];
+const T12_TYPE_META = {
+  einzel_full:  {label:'Einzelbehandlung (60 Min. = 50 + 10 Abwesenheit)', bg:'#ccfbf1', bd:'#0f766e', tx:'#0f766e'},
+  einzel_short: {label:'Einzelbehandlung (50 Min.)', bg:'#d1fae5', bd:'#059669', tx:'#065f46'},
+  mtt_sup:      {label:'MTT supervidiert (45 + 15 Abwesenheit)', bg:'#ede9fe', bd:'#6d28d9', tx:'#5b21b6'},
+  mtt_indep:    {label:'MTT selbstständig (nur Eintritt)', bg:'#f5f3ff', bd:'#a78bfa', tx:'#7c3aed'},
+  uvg60:        {label:'UVG (Ø-Tarif)', bg:'#dbeafe', bd:'#1d4ed8', tx:'#1e40af'},
+  uvg30:        {label:'UVG (Ø-Tarif)', bg:'#dbeafe', bd:'#1d4ed8', tx:'#1e40af'},
+  pause:        {label:'Pause', bg:'#f3f4f6', bd:'#d1d5db', tx:'#9ca3af'},
+  admin:        {label:'Adminzeit', bg:'#f3f4f6', bd:'#9ca3af', tx:'#6b7280'},
+};
+function t12RevenueForBlock(b) {
+  var sE = calcT12EinzelSerie(), sM = calcT12MTT();
+  if (b.type==='einzel_full') return sE.perFull;
+  if (b.type==='einzel_short') return sE.perShort;
+  if (b.type==='mtt_sup') return sM.perSup;
+  if (b.type==='mtt_indep') return T12_CODES.e27320.flat;
+  if (b.type==='uvg60'||b.type==='uvg30') return T12_UVG_AVG;
+  return 0;
+}
+function t12TimeToMin(t) { var p=t.split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
+function t12DayRevenue() {
+  return T12_DAY.reduce(function(s,b){ return s + (['pause','admin'].indexOf(b.type)===-1 ? t12RevenueForBlock(b) : 0); },0);
+}
+
+function renderM12() {
+  var sE = calcT12EinzelSerie(), sEOld = calcT12EinzelSerieOld(), sM = calcT12MTT();
+  var diffPct = (sE.revenue-sEOld.revenue)/sEOld.revenue*100;
+  var chfhNew = sE.revenue/(sE.minutes/60), chfhOld = sEOld.revenue/(sEOld.minutes/60);
+  var diffChfH = (chfhNew-chfhOld)/chfhOld*100;
+  var dayRevenue = t12DayRevenue();
+  var dayTermine = T12_DAY.filter(function(b){return ['pause','admin'].indexOf(b.type)===-1;}).length;
+
+  document.getElementById('m12-kpis').innerHTML =
+    mkpiHtml('','Serie Einzelbehandlung (9 Termine)', chf(sE.revenue,2), (diffPct>=0?'+':'')+diffPct.toFixed(1)+'% vs. altem Tarif ('+chf(sEOld.revenue,2)+')') +
+    mkpiHtml('','CHF/Std. Einzelbehandlung', '<span style="color:'+(diffChfH>=0?'#16a34a':'#ef4444')+'">'+chf(chfhNew,2)+'</span>', (diffChfH>=0?'+':'')+diffChfH.toFixed(1)+'% vs. alt ('+chf(chfhOld,2)+'/h)') +
+    mkpiHtml('','MTT-Serie (36 Termine)', chf(sM.revenue,2), sM.supN+' supervidiert + '+sM.restN+' selbstständig') +
+    mkpiHtml('','Beispieltag (Ø-Taktung)', chf(dayRevenue,2), dayTermine+' Termine, 08:00–18:00');
+
+  var rows = [
+    {c:T12_CODES.e27110, extra:'max. '+T12_CODES.e27110.maxMin+' Min./Sitzung'},
+    {c:T12_CODES.e27710, extra:'Deckel: max. '+T12_CODES.e27710.capMinPerSerie+' Min. je '+T12_CODES.e27710.serieSize+'er-Serie · nur bei effektiv erbrachter Leistung'},
+    {c:T12_CODES.e27310, extra:'max. '+T12_CODES.e27310.maxMin+' Min./Sitzung, max. '+T12_CODES.e27310.maxSitzungen+' Sitzungen/VO'},
+    {c:T12_CODES.e27320, extra:'Pauschale, max. '+T12_CODES.e27320.maxTotal+' Eintritte/VO'},
+    {c:T12_CODES.e7311, extra:'Alt-Tarif · Referenz, erste 5 Termine'},
+    {c:T12_CODES.e7301, extra:'Alt-Tarif · Referenz, ab Termin 6'},
+  ];
+  var tableRows = rows.map(function(r){
+    var val = r.c.flat!=null ? chf(r.c.flat,2)+' pauschal' : chf(r.c.rate5,2)+'/5 Min.';
+    return '<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:8px 10px;font-weight:700;font-size:12.5px;white-space:nowrap">'+r.c.code+'</td><td style="padding:8px 10px;font-size:12px;color:#374151">'+r.c.label+'</td><td style="padding:8px 10px;font-size:12px;text-align:right;font-weight:700;white-space:nowrap">'+val+'</td><td style="padding:8px 10px;font-size:11px;color:#6b7280">'+r.extra+'</td></tr>';
+  }).join('');
+
+  var legend = Object.keys(T12_TYPE_META).map(function(k){
+    var m=T12_TYPE_META[k];
+    return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#374151;margin:0 14px 6px 0"><span style="width:10px;height:10px;border-radius:3px;background:'+m.bg+';border:1.5px solid '+m.bd+';display:inline-block"></span>'+m.label+'</span>';
+  }).join('');
+
+  var dayStart=8*60, dayEnd=18*60, rowMin=5, totalRows=(dayEnd-dayStart)/rowMin;
+  var blocks = T12_DAY.map(function(b){
+    var m = T12_TYPE_META[b.type];
+    var startMin = t12TimeToMin(b.t);
+    var rowStart = Math.round((startMin-dayStart)/rowMin)+1;
+    var rowEnd = rowStart + Math.round(b.dur/rowMin);
+    var rev = ['pause','admin'].indexOf(b.type)===-1 ? t12RevenueForBlock(b) : null;
+    var abwMin = b.type==='einzel_full'?10:(b.type==='mtt_sup'?15:0);
+    var html = '<div style="grid-column:2;grid-row:'+rowStart+'/'+rowEnd+';background:'+m.bg+';border-left:3px solid '+m.bd+';border-radius:5px;padding:3px 8px;overflow:hidden;position:relative">'
+      +'<div style="font-size:10.5px;font-weight:700;color:'+m.tx+'">'+b.t+' · '+(b.pat||m.label)+'</div>'
+      +(b.note?'<div style="font-size:9.5px;color:'+m.tx+';opacity:.8">'+b.note+'</div>':'')
+      +(rev!=null?'<div style="font-size:10px;font-weight:700;color:'+m.tx+';position:absolute;right:8px;top:3px">'+chf(rev,2)+'</div>':'')
+      +'</div>';
+    if (abwMin>0) {
+      var mainMin = b.dur-abwMin, abwRowStart = rowStart+Math.round(mainMin/rowMin);
+      html += '<div style="grid-column:2;grid-row:'+abwRowStart+'/'+rowEnd+';background:repeating-linear-gradient(45deg,'+m.bd+'33,'+m.bd+'33 4px,transparent 4px,transparent 8px);border-left:3px solid '+m.bd+';border-radius:0 0 5px 5px;pointer-events:none"></div>';
+    }
+    return html;
+  }).join('');
+  var hourLines = '';
+  for (var h=8; h<=17; h++) {
+    var r = Math.round((h*60-dayStart)/rowMin)+1;
+    hourLines += '<div style="grid-column:1;grid-row:'+r+';font-size:10px;color:#9ca3af;text-align:right;padding-right:8px;transform:translateY(-6px)">'+h+':00</div>';
+  }
+
+  document.getElementById('m12-content').innerHTML =
+    '<div style="margin:0 28px 16px"><div class="chart-card">'
+    +'<div class="chart-card-hdr">Aufschlüsselung nach Tarifposition <span class="cc-sub">Taxpunktwert CHF '+T12_TPW.toFixed(2)+' (Kanton Zürich, unverändert)</span></div>'
+    +'<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb">'
+    +'<th style="padding:8px 10px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase">Ziffer</th>'
+    +'<th style="padding:8px 10px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase">Leistung</th>'
+    +'<th style="padding:8px 10px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase">Tarif</th>'
+    +'<th style="padding:8px 10px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase">Limiten</th>'
+    +'</tr></thead><tbody>'+tableRows+'</tbody></table>'
+    +'</div></div>'
+    +'<div style="margin:0 28px 20px"><div class="chart-card">'
+    +'<div class="chart-card-hdr">Beispieltag — mögliche Taktung <span class="cc-sub">illustrativ, kein Ist-Datenexport · 08:00–18:00</span></div>'
+    +'<div style="padding:10px 14px 0;display:flex;flex-wrap:wrap">'+legend+'</div>'
+    +'<div style="display:grid;grid-template-columns:46px 1fr;grid-template-rows:repeat('+totalRows+',4px);gap:2px 6px;padding:6px 14px 16px">'
+    +hourLines+blocks
+    +'</div>'
+    +'<div style="padding:0 14px 14px;font-size:10.5px;color:#9ca3af;line-height:1.6">UVG bewusst einfach gehalten: ein Ø-Tarif (CHF '+T12_UVG_AVG.toFixed(2)+'/Termin, aus effektiven Jun–Aug-2026-Daten) unabhängig von 30/60 Min. — der KVG-Tarifwechsel betrifft UVG nicht. Schraffiert = 27710 (Leistung in Abwesenheit), siehe Abrechnungshinweis oben.</div>'
+    +'</div></div>';
+
+  var ht12 = document.getElementById('ht12-kv');
+  if (ht12) { ht12.className='ht-kv'; ht12.style.color='#16a34a'; ht12.textContent=chf(dayRevenue,0)+' · Beispieltag'; }
 }
 
 /* ===================== MODULE 13 - AUSLASTUNGSANALYSE ===================== */
