@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260904091235">
+<meta name="app-build" content="20260904091859">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -5461,6 +5461,22 @@ function t12RevenueForBlock(b) {
   if (b.type==='uvg60'||b.type==='uvg30') return T12_UVG_AVG;
   return 0;
 }
+// Zerlegt einen Termin in seine einzelnen Tarifpositionen (für die Umsatz-Zusammensetzung direkt am Termin)
+function t12BlockParts(b) {
+  if (b.type==='einzel_full') return [
+    {code:'27110', chf:10*T12_CODES.e27110.rate5, note:"50'"},
+    {code:'27710', chf:2*T12_CODES.e27710.rate5, note:"10' Abwesenheit"},
+  ];
+  if (b.type==='einzel_short') return [{code:'27110', chf:10*T12_CODES.e27110.rate5, note:"50'"}];
+  if (b.type==='mtt_sup') return [
+    {code:'27310', chf:9*T12_CODES.e27310.rate5, note:"45'"},
+    {code:'27320', chf:T12_CODES.e27320.flat, note:'Eintritt'},
+    {code:'27710', chf:3*T12_CODES.e27710.rate5, note:"15' Abwesenheit"},
+  ];
+  if (b.type==='mtt_indep') return [{code:'27320', chf:T12_CODES.e27320.flat, note:'Eintritt'}];
+  if (b.type==='uvg60'||b.type==='uvg30') return [{code:'UVG', chf:T12_UVG_AVG, note:'Ø-Tarif'}];
+  return [];
+}
 function t12TimeToMin(t) { var p=t.split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
 function t12DayRevenue() {
   return T12_DAY.reduce(function(s,b){ return s + (['pause','admin'].indexOf(b.type)===-1 ? t12RevenueForBlock(b) : 0); },0);
@@ -5504,12 +5520,18 @@ function renderM12() {
     var startMin = t12TimeToMin(b.t);
     var rowStart = Math.round((startMin-dayStart)/rowMin)+1;
     var rowEnd = rowStart + Math.round(b.dur/rowMin);
-    var rev = ['pause','admin'].indexOf(b.type)===-1 ? t12RevenueForBlock(b) : null;
+    var parts = t12BlockParts(b);
+    var partsLine = '';
+    if (parts.length) {
+      var partsStr = parts.map(function(p){ return p.code+' '+chf(p.chf,2)+' ('+p.note+')'; }).join(' + ');
+      var total = parts.reduce(function(s,p){ return s+p.chf; },0);
+      partsLine = '<div style="font-size:8.5px;font-weight:600;color:'+m.tx+';white-space:nowrap;line-height:1.3">'+partsStr+(parts.length>1?' <span style="font-weight:800">= '+chf(total,2)+'</span>':'')+'</div>';
+    }
     var abwMin = b.type==='einzel_full'?10:(b.type==='mtt_sup'?15:0);
-    var html = '<div style="grid-column:2;grid-row:'+rowStart+'/'+rowEnd+';background:'+m.bg+';border-left:3px solid '+m.bd+';border-radius:5px;padding:3px 8px;overflow:hidden;position:relative">'
-      +'<div style="font-size:10.5px;font-weight:700;color:'+m.tx+'">'+b.t+' · '+(b.pat||m.label)+'</div>'
-      +(b.note?'<div style="font-size:9.5px;color:'+m.tx+';opacity:.8">'+b.note+'</div>':'')
-      +(rev!=null?'<div style="font-size:10px;font-weight:700;color:'+m.tx+';position:absolute;right:8px;top:3px">'+chf(rev,2)+'</div>':'')
+    var html = '<div style="grid-column:2;grid-row:'+rowStart+'/'+rowEnd+';background:'+m.bg+';border-left:3px solid '+m.bd+';border-radius:5px;padding:2px 8px;overflow:hidden;position:relative;line-height:1.2">'
+      +'<div style="font-size:10px;font-weight:700;color:'+m.tx+'">'+b.t+' · '+(b.pat||m.label)+'</div>'
+      +(b.note?'<div style="font-size:8.5px;color:'+m.tx+';opacity:.75">'+b.note+'</div>':'')
+      +partsLine
       +'</div>';
     if (abwMin>0) {
       var mainMin = b.dur-abwMin, abwRowStart = rowStart+Math.round(mainMin/rowMin);
