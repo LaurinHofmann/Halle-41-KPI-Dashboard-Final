@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260904132836">
+<meta name="app-build" content="20260904133759">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -5520,6 +5520,32 @@ function renderM12() {
     mkpiHtml('','MTT-Serie (36 Termine)', chf(sM.revenue,2), sM.supN+' supervidiert + '+sM.restN+' selbstständig') +
     mkpiHtml('','Beispieltag (Ø-Taktung)', chf(dayRevenue,2), dayTermine+' Termine, '+dayRange+' (keine Pausen)');
 
+  // Fazit: MTT-Vergleich (alt) + Kontrollrechnung "durchgehend 30 Min." (falls die 45'/60'-Taktung nicht eingehalten wird)
+  var mttOld = 2*T12_CODES.e7301.flat + 34*24.42;
+  var neuMTTKonservativ = 4*(9*T12_CODES.e27310.rate5+T12_CODES.e27320.flat) + 32*T12_CODES.e27320.flat;
+  var mttDiffKonservativ = (neuMTTKonservativ-mttOld)/mttOld*100;
+  var mttDiffMax = (sM.revenue-mttOld)/mttOld*100;
+  var rev30 = 9*(6*T12_CODES.e27110.rate5), min30 = 9*30;
+  var chfh30 = rev30/(min30/60);
+  var diff30Serie = (rev30-sEOld.revenue)/sEOld.revenue*100;
+  var diff30ChfH = (chfh30-chfhOld)/chfhOld*100;
+  var revNeuKonservativ = 9*(9*T12_CODES.e27110.rate5), minNeuKonservativ = 9*45;
+  var chfhKonservativ = revNeuKonservativ/(minNeuKonservativ/60);
+  var diffKonservativSerie = (revNeuKonservativ-sEOld.revenue)/sEOld.revenue*100;
+  var diffKonservativChfH = (chfhKonservativ-chfhOld)/chfhOld*100;
+
+  var fazit = '<div style="margin:0 28px 16px"><div class="chart-card" style="border:1.5px solid #86efac">'
+    +'<div class="chart-card-hdr" style="color:#166534">✓ Fazit <span class="cc-sub" style="color:#166534">mehr Umsatz ist realistisch — aber nur unter bestimmten Bedingungen</span></div>'
+    +'<div style="padding:12px 16px 16px;font-size:12.5px;color:#374151;line-height:1.85">'
+    +'<strong>MTT:</strong> klarer, robuster Gewinn — <strong style="color:#166534">+'+mttDiffKonservativ.toFixed(1)+'%</strong> selbst ganz ohne 27710 (CHF '+chf(mttOld,2)+' → CHF '+chf(neuMTTKonservativ,2)+'), bis zu <strong style="color:#166534">+'+mttDiffMax.toFixed(1)+'%</strong> mit voller Nutzung. Kaum Vorbehalte.'
+    +'<br><br>'
+    +'<strong>Einzelbehandlung — gilt NUR bei konsequenter 45\'/60\'-Taktung wie oben modelliert:</strong> mehr Umsatz pro Serie (+'+diffKonservativSerie.toFixed(1)+'% bis +'+diffPct.toFixed(1)+'%), aber weniger CHF/Std. ('+diffKonservativChfH.toFixed(1)+'% bis '+diffChfH.toFixed(1)+'%) — der Stundenverlust kommt nicht von 27710, sondern strukturell vom neuen linearen Tarif selbst.'
+    +'<br><br>'
+    +'<strong style="color:#991b1b">Falls stattdessen weiter mit 30-Min-Terminen behandelt wird</strong> (alte Gewohnheit, ohne auf 45\'/60\' umzustellen): sieht die Rechnung anders — <strong style="color:#991b1b">und eindeutig schlechter</strong> aus. CHF '+chf(rev30,2)+'/Serie ('+diff30Serie.toFixed(1)+'% vs. alt) bei CHF '+chf(chfh30,2)+'/h ('+diff30ChfH.toFixed(1)+'% vs. alt) — hier sinkt sowohl der Umsatz pro Serie als auch pro Stunde, ohne den Ausgleich durch längere, besser bezahlte Termine.'
+    +'<br><br>'
+    +'<strong>Bedingung für den positiven Fall:</strong> Es braucht (1) tatsächlich freie Kalenderkapazität (Weisse Fläche) statt eines bereits vollen Kalenders, und (2) dass die 27710-Zeit effektiv mit echter, dokumentierter Arbeit gefüllt wird — siehe Abrechnungshinweis oben.'
+    +'</div></div></div>';
+
   var rows = [
     {c:T12_CODES.e27110, extra:'max. '+T12_CODES.e27110.maxMin+' Min./Sitzung (Praxis nutzt operativ nur 45\' oder 60\' Slots)'},
     {c:T12_CODES.e27710, extra:'Deckel: max. '+T12_CODES.e27710.capMinPerSerie+' Min. je '+T12_CODES.e27710.serieSize+'er-Serie · nur bei effektiv erbrachter Leistung'},
@@ -5596,7 +5622,8 @@ function renderM12() {
   }
 
   document.getElementById('m12-content').innerHTML =
-    oldExplain
+    fazit
+    +oldExplain
     +'<div style="margin:0 28px 16px"><div class="chart-card">'
     +'<div class="chart-card-hdr">Aufschlüsselung nach Tarifposition <span class="cc-sub">Taxpunktwert CHF '+T12_TPW.toFixed(2)+' (Kanton Zürich, unverändert)</span></div>'
     +'<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb">'
