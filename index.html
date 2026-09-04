@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260904095957">
+<meta name="app-build" content="20260904132836">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -5421,9 +5421,21 @@ function calcT12EinzelSerie() {
   var perShort = 9*T12_CODES.e27110.rate5;
   return {sessions:9, perFull:perFull, perShort:perShort, revenue:6*perFull+3*perShort, minutes:6*60+3*45};
 }
-// Alt-Serie (9 Termine) zum Vergleich: erste 5 = 7311 (~60 Min.), letzte 4 = 7301 (~30 Min.)
+// Reale Cenplex-Terminzähler (Alt-Tarif): Anzahl effektiv verrechneter 7301- und 7311-Termine im aktuellen Zeitraum
+const T12_OLD_TERMINE = {n7301: 1877, n7311: 329};
+// Alt-Tarif: zwei Patiententypen. "Normalfall" = ganze 9er-Serie durchgehend 7301 (30 Min.).
+// "7311-Patient" = erste 5 Termine 7311 (60 Min.), restliche 4 Termine 7301 (30 Min.) — macht ebenfalls 9 Termine/Serie.
+// Anteil beider Typen wird aus den realen Terminzählern zurückgerechnet (5 7311-Termine pro 7311-Serie, 4 zusätzliche
+// 7301-Termine pro 7311-Serie fliessen in den 7301-Zähler mit ein) und ergibt einen gewichteten Ø-Wert pro Serie/Std.
 function calcT12EinzelSerieOld() {
-  return {sessions:9, revenue:5*T12_CODES.e7311.flat+4*T12_CODES.e7301.flat, minutes:5*60+4*30};
+  var seriesB = T12_OLD_TERMINE.n7311 / 5;
+  var seriesA = (T12_OLD_TERMINE.n7301 - 4*seriesB) / 9;
+  var totalSeries = seriesA + seriesB;
+  var shareA = seriesA/totalSeries, shareB = seriesB/totalSeries;
+  var revA = 9*T12_CODES.e7301.flat, minA = 9*30;
+  var revB = 5*T12_CODES.e7311.flat + 4*T12_CODES.e7301.flat, minB = 5*60 + 4*30;
+  return {sessions:9, revenue:shareA*revA+shareB*revB, minutes:shareA*minA+shareB*minB,
+          shareA:shareA, shareB:shareB, revA:revA, minA:minA, revB:revB, minB:minB};
 }
 // MTT (bis zu 36 Termine/VO): erste 4 supervidiert (45 Min. 27310 + 15 Min. 27710 + Eintritt 27320), Rest nur Eintritt
 function calcT12MTT() {
@@ -5513,9 +5525,27 @@ function renderM12() {
     {c:T12_CODES.e27710, extra:'Deckel: max. '+T12_CODES.e27710.capMinPerSerie+' Min. je '+T12_CODES.e27710.serieSize+'er-Serie · nur bei effektiv erbrachter Leistung'},
     {c:T12_CODES.e27310, extra:'max. '+T12_CODES.e27310.maxMin+' Min./Sitzung, max. '+T12_CODES.e27310.maxSitzungen+' Sitzungen/VO'},
     {c:T12_CODES.e27320, extra:'Pauschale, max. '+T12_CODES.e27320.maxTotal+' Eintritte/VO'},
-    {c:T12_CODES.e7311, extra:'Alt-Tarif · Referenz, erste 5 Termine'},
-    {c:T12_CODES.e7301, extra:'Alt-Tarif · Referenz, ab Termin 6'},
+    {c:T12_CODES.e7311, extra:'Alt-Tarif · nur "7311-Patienten", erste 5 Termine/Serie · '+T12_OLD_TERMINE.n7311+' effektive Termine (Cenplex)'},
+    {c:T12_CODES.e7301, extra:'Alt-Tarif · "Normalfall" durchgehend + Termine 6-9 bei "7311-Patienten" · '+T12_OLD_TERMINE.n7301+' effektive Termine (Cenplex)'},
   ];
+
+  var oldExplain = '<div style="margin:0 28px 16px"><div class="chart-card">'
+    +'<div class="chart-card-hdr">Woher kommt der Alt-Tarif-Vergleichswert? <span class="cc-sub">gewichteter Ø aus zwei Patiententypen, nicht nur ein Beispiel</span></div>'
+    +'<div style="padding:12px 16px 16px;font-size:12px;color:#374151;line-height:1.8">'
+    +'Alt-Tarif kannte zwei Patiententypen: <strong>"Normalfall"</strong> (ganze 9er-Serie durchgehend 7301, 30 Min.) und <strong>"7311-Patient"</strong> (erste 5 Termine 7311 à 60 Min., restliche 4 Termine 7301 à 30 Min. — ebenfalls 9 Termine/Serie). '
+    +'Aus den effektiven Cenplex-Terminzahlen (<strong>'+T12_OLD_TERMINE.n7301+'</strong> Termine mit TP 7301, <strong>'+T12_OLD_TERMINE.n7311+'</strong> mit TP 7311) lässt sich der Anteil zurückrechnen: '+T12_OLD_TERMINE.n7311+' ÷ 5 = <strong>'+(T12_OLD_TERMINE.n7311/5).toFixed(1)+' "7311"-Serien</strong>; davon stammen 4×'+(T12_OLD_TERMINE.n7311/5).toFixed(1)+' = '+(4*T12_OLD_TERMINE.n7311/5).toFixed(1)+' der 7301-Termine, der Rest ('+(T12_OLD_TERMINE.n7301-4*T12_OLD_TERMINE.n7311/5).toFixed(1)+') ÷ 9 = <strong>'+((T12_OLD_TERMINE.n7301-4*T12_OLD_TERMINE.n7311/5)/9).toFixed(1)+' "Normalfall"-Serien</strong>.'
+    +'<br><br>'
+    +'<table style="width:100%;border-collapse:collapse;margin-top:4px"><thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb">'
+    +'<th style="padding:6px 10px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase">Typ</th>'
+    +'<th style="padding:6px 10px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase">Anteil</th>'
+    +'<th style="padding:6px 10px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase">Umsatz/Serie</th>'
+    +'<th style="padding:6px 10px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase">Zeit/Serie</th></tr></thead><tbody>'
+    +'<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:6px 10px">"Normalfall" (9× 7301)</td><td style="padding:6px 10px;text-align:right;font-weight:700">'+(sEOld.shareA*100).toFixed(1)+'%</td><td style="padding:6px 10px;text-align:right">'+chf(sEOld.revA,2)+'</td><td style="padding:6px 10px;text-align:right">'+sEOld.minA+' Min.</td></tr>'
+    +'<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:6px 10px">"7311-Patient" (5× 7311 + 4× 7301)</td><td style="padding:6px 10px;text-align:right;font-weight:700">'+(sEOld.shareB*100).toFixed(1)+'%</td><td style="padding:6px 10px;text-align:right">'+chf(sEOld.revB,2)+'</td><td style="padding:6px 10px;text-align:right">'+sEOld.minB+' Min.</td></tr>'
+    +'<tr style="background:#f9fafb"><td style="padding:6px 10px;font-weight:800">Gewichteter Ø</td><td style="padding:6px 10px;text-align:right;font-weight:800">100%</td><td style="padding:6px 10px;text-align:right;font-weight:800">'+chf(sEOld.revenue,2)+'</td><td style="padding:6px 10px;text-align:right;font-weight:800">'+sEOld.minutes.toFixed(0)+' Min. ('+(sEOld.minutes/60).toFixed(2)+' h)</td></tr>'
+    +'</tbody></table>'
+    +'<div style="margin-top:8px;color:#6b7280;font-size:11px">→ CHF/Std. Alt-Tarif = '+chf(sEOld.revenue,2)+' ÷ '+(sEOld.minutes/60).toFixed(2)+' h = <strong style="color:#374151">'+chf(chfhOld,2)+'/h</strong></div>'
+    +'</div></div></div>';
   var tableRows = rows.map(function(r){
     var val = r.c.flat!=null ? chf(r.c.flat,2)+' pauschal' : chf(r.c.rate5,2)+'/5 Min.';
     return '<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:8px 10px;font-weight:700;font-size:12.5px;white-space:nowrap">'+r.c.code+'</td><td style="padding:8px 10px;font-size:12px;color:#374151">'+r.c.label+'</td><td style="padding:8px 10px;font-size:12px;text-align:right;font-weight:700;white-space:nowrap">'+val+'</td><td style="padding:8px 10px;font-size:11px;color:#6b7280">'+r.extra+'</td></tr>';
@@ -5566,7 +5596,8 @@ function renderM12() {
   }
 
   document.getElementById('m12-content').innerHTML =
-    '<div style="margin:0 28px 16px"><div class="chart-card">'
+    oldExplain
+    +'<div style="margin:0 28px 16px"><div class="chart-card">'
     +'<div class="chart-card-hdr">Aufschlüsselung nach Tarifposition <span class="cc-sub">Taxpunktwert CHF '+T12_TPW.toFixed(2)+' (Kanton Zürich, unverändert)</span></div>'
     +'<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb">'
     +'<th style="padding:8px 10px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase">Ziffer</th>'
