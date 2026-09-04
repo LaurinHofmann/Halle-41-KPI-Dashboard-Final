@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260904092747">
+<meta name="app-build" content="20260904093250">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -1199,6 +1199,7 @@ td{padding:8px 12px;vertical-align:middle}
       <strong>27710</strong> Leistung in Abwesenheit — CHF 7.19/5 Min., Deckel max. 60 Min. je 9er-Serie &nbsp;|&nbsp;
       <strong>27310</strong> MTT-Einzelbetreuung — CHF 7.52/5 Min., max. 45 Min., max. 4 Sitzungen/VO &nbsp;|&nbsp;
       <strong>27320</strong> MTT-Einzeleintritt — CHF 27.93 pauschal, max. 36/VO &nbsp;|&nbsp;
+      <strong>UVG</strong> — CHF 10.03/5 Min., Tarif unverändert &nbsp;|&nbsp;
       Taxpunktwert vorerst unverändert: CHF 1.11 (Kanton Zürich)
     </div>
     <div style="color:#78350f;line-height:1.7;margin-top:6px;padding-top:6px;border-top:1px dashed #fcd34d">
@@ -5408,8 +5409,8 @@ const T12_CODES = {
   e7301:  {code:'7301', label:'Alt: Folgebehandlung (~30 Min.)', flat:53.28},
   e7311:  {code:'7311', label:'Alt: Ersttermin / frühe Behandlung (~60 Min., erste 5 Termine)', flat:85.47},
 };
-// Ø effektiver UVG-Umsatz/Termin (Jun–Aug 2026, Mix 30/60 Min.) — bewusst nicht weiter aufgeteilt, UVG bleibt vom KVG-Tarifwechsel unberührt
-const T12_UVG_AVG = 236.80;
+// UVG-Tarif (unverändert vom KVG-Tarifwechsel), linear wie die neuen KVG-Zeittarife gerechnet
+const T12_UVG_RATE5 = 10.03;
 
 // Serie Einzelbehandlung (9 Termine): Praxis nutzt operativ nur 45'/60'-Slots (kein 50'). Erste 6 fix 60 Min. (50 Min. 27110 + 10 Min. 27710), danach fix 45 Min. (27110 only)
 function calcT12EinzelSerie() {
@@ -5436,24 +5437,22 @@ const T12_DAY = [
   {t:'08:00',dur:60,type:'einzel_full',pat:'Patient A',note:'Serie 2/9'},
   {t:'09:00',dur:60,type:'einzel_full',pat:'Patient B',note:'Serie 4/9'},
   {t:'10:00',dur:45,type:'einzel_short',pat:'Patient C',note:'Serie 8/9'},
-  {t:'10:45',dur:15,type:'pause',pat:'',note:'Pause'},
-  {t:'11:00',dur:60,type:'mtt_sup',pat:'Patient D',note:'MTT 2/4 (supervidiert)'},
-  {t:'12:00',dur:60,type:'pause',pat:'',note:'Mittag'},
-  {t:'13:00',dur:60,type:'einzel_full',pat:'Patient E',note:'Ersttermin (Serie 1/9)'},
-  {t:'14:00',dur:60,type:'uvg60',pat:'Patient F',note:'UVG · 60\''},
-  {t:'15:00',dur:45,type:'uvg45',pat:'Patient G',note:'UVG · 45\''},
-  {t:'15:45',dur:45,type:'einzel_short',pat:'Patient H',note:'Serie 9/9'},
-  {t:'16:30',dur:10,type:'mtt_indep',pat:'Patient I',note:'MTT selbstständig (Check-in)'},
-  {t:'16:40',dur:60,type:'einzel_full',pat:'Patient J',note:'Serie 3/9'},
-  {t:'17:40',dur:20,type:'admin',pat:'',note:'Adminzeit'},
+  {t:'10:45',dur:60,type:'mtt_sup',pat:'Patient D',note:'MTT 2/4 (supervidiert)'},
+  {t:'11:45',dur:60,type:'einzel_full',pat:'Patient E',note:'Ersttermin (Serie 1/9)'},
+  {t:'12:45',dur:60,type:'uvg60',pat:'Patient F',note:'UVG · 60\''},
+  {t:'13:45',dur:45,type:'uvg45',pat:'Patient G',note:'UVG · 45\''},
+  {t:'14:30',dur:45,type:'einzel_short',pat:'Patient H',note:'Serie 9/9'},
+  {t:'15:15',dur:10,type:'mtt_indep',pat:'Patient I',note:'MTT selbstständig (Check-in)'},
+  {t:'15:25',dur:60,type:'einzel_full',pat:'Patient J',note:'Serie 3/9'},
+  {t:'16:25',dur:20,type:'admin',pat:'',note:'Adminzeit'},
 ];
 const T12_TYPE_META = {
   einzel_full:  {label:'Einzelbehandlung (60 Min. = 50 + 10 Abwesenheit)', bg:'#ccfbf1', bd:'#0f766e', tx:'#0f766e'},
   einzel_short: {label:'Einzelbehandlung (45 Min.)', bg:'#d1fae5', bd:'#059669', tx:'#065f46'},
   mtt_sup:      {label:'MTT supervidiert (45 + 15 Abwesenheit)', bg:'#ede9fe', bd:'#6d28d9', tx:'#5b21b6'},
   mtt_indep:    {label:'MTT selbstständig (nur Eintritt)', bg:'#f5f3ff', bd:'#a78bfa', tx:'#7c3aed'},
-  uvg60:        {label:'UVG 60 Min. (Ø-Tarif)', bg:'#dbeafe', bd:'#1d4ed8', tx:'#1e40af'},
-  uvg45:        {label:'UVG 45 Min. (Ø-Tarif)', bg:'#dbeafe', bd:'#1d4ed8', tx:'#1e40af'},
+  uvg60:        {label:'UVG 60 Min.', bg:'#dbeafe', bd:'#1d4ed8', tx:'#1e40af'},
+  uvg45:        {label:'UVG 45 Min.', bg:'#dbeafe', bd:'#1d4ed8', tx:'#1e40af'},
   pause:        {label:'Pause', bg:'#f3f4f6', bd:'#d1d5db', tx:'#9ca3af'},
   admin:        {label:'Adminzeit', bg:'#f3f4f6', bd:'#9ca3af', tx:'#6b7280'},
 };
@@ -5463,7 +5462,8 @@ function t12RevenueForBlock(b) {
   if (b.type==='einzel_short') return sE.perShort;
   if (b.type==='mtt_sup') return sM.perSup;
   if (b.type==='mtt_indep') return T12_CODES.e27320.flat;
-  if (b.type==='uvg60'||b.type==='uvg45') return T12_UVG_AVG;
+  if (b.type==='uvg60') return 12*T12_UVG_RATE5;
+  if (b.type==='uvg45') return 9*T12_UVG_RATE5;
   return 0;
 }
 // Zerlegt einen Termin in seine einzelnen Tarifpositionen (für die Umsatz-Zusammensetzung direkt am Termin)
@@ -5479,7 +5479,8 @@ function t12BlockParts(b) {
     {code:'27710', chf:3*T12_CODES.e27710.rate5, note:"15' Abwesenheit"},
   ];
   if (b.type==='mtt_indep') return [{code:'27320', chf:T12_CODES.e27320.flat, note:'Eintritt'}];
-  if (b.type==='uvg60'||b.type==='uvg45') return [{code:'UVG', chf:T12_UVG_AVG, note:'Ø-Tarif'}];
+  if (b.type==='uvg60') return [{code:'UVG', chf:12*T12_UVG_RATE5, note:"60'"}];
+  if (b.type==='uvg45') return [{code:'UVG', chf:9*T12_UVG_RATE5, note:"45'"}];
   return [];
 }
 function t12TimeToMin(t) { var p=t.split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
@@ -5494,12 +5495,16 @@ function renderM12() {
   var diffChfH = (chfhNew-chfhOld)/chfhOld*100;
   var dayRevenue = t12DayRevenue();
   var dayTermine = T12_DAY.filter(function(b){return ['pause','admin'].indexOf(b.type)===-1;}).length;
+  var dayFirstStart = T12_DAY[0].t;
+  var dayLastEndMin = t12TimeToMin(T12_DAY[T12_DAY.length-1].t) + T12_DAY[T12_DAY.length-1].dur;
+  var dayLastEnd = Math.floor(dayLastEndMin/60)+':'+String(dayLastEndMin%60).padStart(2,'0');
+  var dayRange = dayFirstStart+'–'+dayLastEnd;
 
   document.getElementById('m12-kpis').innerHTML =
     mkpiHtml('','Serie Einzelbehandlung (9 Termine)', chf(sE.revenue,2), (diffPct>=0?'+':'')+diffPct.toFixed(1)+'% vs. altem Tarif ('+chf(sEOld.revenue,2)+')') +
     mkpiHtml('','CHF/Std. Einzelbehandlung', '<span style="color:'+(diffChfH>=0?'#16a34a':'#ef4444')+'">'+chf(chfhNew,2)+'</span>', (diffChfH>=0?'+':'')+diffChfH.toFixed(1)+'% vs. alt ('+chf(chfhOld,2)+'/h)') +
     mkpiHtml('','MTT-Serie (36 Termine)', chf(sM.revenue,2), sM.supN+' supervidiert + '+sM.restN+' selbstständig') +
-    mkpiHtml('','Beispieltag (Ø-Taktung)', chf(dayRevenue,2), dayTermine+' Termine, 08:00–18:00');
+    mkpiHtml('','Beispieltag (Ø-Taktung)', chf(dayRevenue,2), dayTermine+' Termine, '+dayRange+' (keine Pausen)');
 
   var rows = [
     {c:T12_CODES.e27110, extra:'max. '+T12_CODES.e27110.maxMin+' Min./Sitzung (Praxis nutzt operativ nur 45\' oder 60\' Slots)'},
@@ -5519,7 +5524,7 @@ function renderM12() {
     return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#374151;margin:0 14px 6px 0"><span style="width:10px;height:10px;border-radius:3px;background:'+m.bg+';border:1.5px solid '+m.bd+';display:inline-block"></span>'+m.label+'</span>';
   }).join('');
 
-  var dayStart=8*60, dayEnd=18*60, rowMin=5, totalRows=(dayEnd-dayStart)/rowMin;
+  var dayStart=8*60, dayEnd=17*60, rowMin=5, totalRows=(dayEnd-dayStart)/rowMin;
   var blocks = T12_DAY.map(function(b){
     var m = T12_TYPE_META[b.type];
     var startMin = t12TimeToMin(b.t);
@@ -5545,7 +5550,7 @@ function renderM12() {
     return html;
   }).join('');
   var hourLines = '';
-  for (var h=8; h<=17; h++) {
+  for (var h=8; h<=16; h++) {
     var r = Math.round((h*60-dayStart)/rowMin)+1;
     hourLines += '<div style="grid-column:1;grid-row:'+r+';font-size:10px;color:#9ca3af;text-align:right;padding-right:8px;transform:translateY(-6px)">'+h+':00</div>';
   }
@@ -5561,12 +5566,12 @@ function renderM12() {
     +'</tr></thead><tbody>'+tableRows+'</tbody></table>'
     +'</div></div>'
     +'<div style="margin:0 28px 20px"><div class="chart-card">'
-    +'<div class="chart-card-hdr">Beispieltag — mögliche Taktung <span class="cc-sub">illustrativ, kein Ist-Datenexport · 08:00–18:00</span></div>'
+    +'<div class="chart-card-hdr">Beispieltag — mögliche Taktung <span class="cc-sub">illustrativ, kein Ist-Datenexport · '+dayRange+', keine Pausen</span></div>'
     +'<div style="padding:10px 14px 0;display:flex;flex-wrap:wrap">'+legend+'</div>'
     +'<div style="display:grid;grid-template-columns:46px 1fr;grid-template-rows:repeat('+totalRows+',4px);gap:2px 6px;padding:6px 14px 16px">'
     +hourLines+blocks
     +'</div>'
-    +'<div style="padding:0 14px 14px;font-size:10.5px;color:#9ca3af;line-height:1.6">UVG bewusst einfach gehalten: ein Ø-Tarif (CHF '+T12_UVG_AVG.toFixed(2)+'/Termin, aus effektiven Jun–Aug-2026-Daten) unabhängig von 45/60 Min. — der KVG-Tarifwechsel betrifft den UVG-Tarif nicht, nur die Terminlänge wurde auf dasselbe 45\'/60\'-Raster wie KVG umgestellt. Schraffiert = 27710 (Leistung in Abwesenheit), siehe Abrechnungshinweis oben.</div>'
+    +'<div style="padding:0 14px 14px;font-size:10.5px;color:#9ca3af;line-height:1.6">UVG linear tarifiert wie KVG: CHF '+T12_UVG_RATE5.toFixed(2)+'/5 Min. — 45\' = '+chf(9*T12_UVG_RATE5,2)+', 60\' = '+chf(12*T12_UVG_RATE5,2)+'. Der KVG-Tarifwechsel betrifft den UVG-Tarif selbst nicht. Schraffiert = 27710 (Leistung in Abwesenheit), siehe Abrechnungshinweis oben.</div>'
     +'</div></div>';
 
   var ht12 = document.getElementById('ht12-kv');
