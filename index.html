@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260908163128">
+<meta name="app-build" content="20260910121654">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -130,17 +130,21 @@ var H41_SEED_DATA = {
 })();
 // ── Auth ──
 var H41_USERS = [
-  {email:'laurinhofmann@halle41.ch', name:'Laurin Hofmann', role:'admin',             hash:'23d9d5fb3a10ac3a9c85552090998468a3bf928a94b379884bfe1b9200bc301e'},
-  {email:'romanbader@halle41.ch',    name:'Roman Bader',    role:'admin',             hash:'80b5c66322df9f6d492f54d4a4f12d11c9f24dd548a952c7da8e5faf088f56f6'},
-  {email:'damirbakarcic@halle41.ch', name:'Damir Bakarcic', role:'bereichsleiter', loc:'Kloten',  hash:'dc9327349e3e83628571a6a98c23f500a9ab03b1ecbaa13c59920cc4e2e30549'},
-  {email:'mayakeller@halle41.ch',    name:'Maya Keller',    role:'bereichsleiter', loc:'Zuerich', hash:'cc6939db3abc026fa05a135173705c57b25e16106e25f60ff195aca714813b59'},
-  {email:'andreisokolov@halle41.ch', name:'Andrei Sokolov', role:'fachlicher-leiter', hash:'4ea1b4fcdb8c19c6ae9a0e2c4416f2601cb8b76dd01f892640131b535991e8f2'},
+  {email:'laurinhofmann@halle41.ch', name:'Laurin Hofmann', role:'admin',             hash:'a675b6cb2a6de783acc326108fe8018a6b665de5a481362650dbbb0a043dce9a'},
+  {email:'romanbader@halle41.ch',    name:'Roman Bader',    role:'admin',             hash:'b89c020f8381eb0628791cac755c151a7f427d83b0e80a37da070ed44fd7f0b4'},
+  {email:'damirbakarcic@halle41.ch', name:'Damir Bakarcic', role:'bereichsleiter', loc:'Kloten',  hash:'1ab72801d5c6eccf52453a0d342c4908df6f3db0c04eeb77638f266d3fa9bbb3'},
+  {email:'mayakeller@halle41.ch',    name:'Maya Keller',    role:'bereichsleiter', loc:'Zuerich', hash:'d977534cb1f50658f7fb4aa182d1baee82507f5405aa0154fbc4b029f36695ab'},
+  {email:'andreisokolov@halle41.ch', name:'Andrei Sokolov', role:'fachlicher-leiter', hash:'319a68062669c258cf612ced8e667c88d0f666659a48888ee21f8d7fd3726bc8'},
 ];
 var H41_ROLE_LABELS = {admin:'Admin', bereichsleiter:'Bereichsleiter:in', 'fachlicher-leiter':'Fachlicher Leiter'};
 async function h41Sha256(str){
   var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
 }
+// Eigenes Passwort (falls gesetzt) wird nur lokal im Browser der jeweiligen Person gespeichert,
+// nie im öffentlichen Quellcode - überschreibt das Standard-PW aus H41_USERS beim Login.
+function h41PwKey(email){ return 'h41_pw_'+email; }
+function h41PwSetKey(email){ return 'h41_pw_set_'+email; }
 (function(){
   function applyRoleClass(role){
     document.body.classList.remove('role-admin','role-bereichsleiter','role-fachlicher-leiter');
@@ -173,7 +177,9 @@ async function h41Sha256(str){
     var user=H41_USERS.find(function(u){return u.email===email;});
     if(!user){errEl.textContent='E-Mail nicht gefunden.';return;}
     var h=await h41Sha256(pw);
-    if(h!==user.hash){errEl.textContent='Falsches Passwort.';document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();return;}
+    var customHash=localStorage.getItem(h41PwKey(user.email));
+    var expectedHash=customHash||user.hash;
+    if(h!==expectedHash){errEl.textContent='Falsches Passwort.';document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();return;}
     completeLogin(user);
   };
   window.showForgotPw=function(){
