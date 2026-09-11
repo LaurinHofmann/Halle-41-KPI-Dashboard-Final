@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260911081218">
+<meta name="app-build" content="20260911082542">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -3953,7 +3953,9 @@ function getUtilForMonth(m10Name, loc, month) {
   }
 }
 function getAbsRate(m10Name, m10Loc, month) {
-  var fn=m10Name.trim().split(/\s+/)[0].toLowerCase();
+  // Vorname = alles ausser dem letzten Wort (Nachname) - funktioniert auch bei mehrteiligen Vornamen wie "Alisha Mee"
+  var nameParts=m10Name.trim().split(/\s+/);
+  var fn=nameParts.slice(0,-1).join(' ').toLowerCase();
   var patLoc=m10Loc==='Zuerich'?'Zürich':'Kloten';
   var rows=getM11AllRecords().filter(function(r){return r.t.toLowerCase()===fn&&r.loc===patLoc&&(month==='all'||r.m===month);});
   var tot=rows.reduce(function(s,r){return s+r.total;},0),abs=rows.reduce(function(s,r){return s+r.abs;},0);
