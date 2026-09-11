@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="20260803141222">
-<meta name="app-build" content="20260911082542">
+<meta name="app-build" content="20260911084155">
 <title>Halle 41 – Umsatz Dashboard</title>
 <script>
 (function(){
@@ -3916,9 +3916,10 @@ function setM10Month(m, btn) {
 /* ===================== MODULE 10 – THERAPEUTEN-SCORECARD ===================== */
 // Auslastung aus der Auslastungsanalyse (m13) ableiten – gleiche Quelle, die Bereichsleiter selbst pflegen.
 function getM13UtilForName(m10Name, loc, month) {
+  // Nachname = letztes Wort, Vorname = alles davor (funktioniert auch bei mehrteiligen Vornamen wie "Alisha Mee")
   var parts=m10Name.trim().split(/\s+/);
-  var vorname=parts[0], nachname=parts.slice(1).join(' ');
-  if(!nachname) return null;
+  var nachname=parts[parts.length-1], vorname=parts.slice(0,-1).join(' ');
+  if(!vorname) return null;
   var allData=getAuslastungAllData();
   var d=allData.find(function(r){
     return r.month===month&&r.loc===loc&&
@@ -3962,7 +3963,8 @@ function getAbsRate(m10Name, m10Loc, month) {
   return tot>=10?Math.round(abs/tot*1000)/10:null;
 }
 function getUtilPct(m10Name, loc) {
-  var m13Months=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
+  // Monate dynamisch aus den effektiv vorhandenen Auslastungsdaten ableiten, statt fest auf Jan-Jun zu begrenzen
+  var m13Months=[...new Set(getAuslastungAllData().map(function(r){return r.month;}))].sort();
   var m13Vals=m13Months.map(function(m){return getM13UtilForName(m10Name,loc,m);}).filter(function(v){return v!=null;});
   if(m13Vals.length) return Math.round(m13Vals.reduce(function(a,b){return a+b;},0)/m13Vals.length*10)/10;
   // M10 names: "Vorname Nachname" → surname = last word
